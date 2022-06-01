@@ -1,0 +1,6 @@
+/Users/shenheping/cpp-sdk/cpp/cmake-build-debug/CMakeFiles/tacpp.dir
+/Users/shenheping/cpp-sdk/cpp/cmake-build-debug/CMakeFiles/edit_cache.dir
+/Users/shenheping/cpp-sdk/cpp/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/Users/shenheping/cpp-sdk/cpp/cmake-build-debug/example/CMakeFiles/program.dir
+/Users/shenheping/cpp-sdk/cpp/cmake-build-debug/example/CMakeFiles/edit_cache.dir
+/Users/shenheping/cpp-sdk/cpp/cmake-build-debug/example/CMakeFiles/rebuild_cache.dir

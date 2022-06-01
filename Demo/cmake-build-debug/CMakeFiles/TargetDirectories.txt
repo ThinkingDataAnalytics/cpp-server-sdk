@@ -1,0 +1,3 @@
+/Users/shenheping/cpp-sdk/Demo/cmake-build-debug/CMakeFiles/Demo.dir
+/Users/shenheping/cpp-sdk/Demo/cmake-build-debug/CMakeFiles/edit_cache.dir
+/Users/shenheping/cpp-sdk/Demo/cmake-build-debug/CMakeFiles/rebuild_cache.dir
