@@ -1,2 +1,0 @@
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ar qc libtacpp.a CMakeFiles/tacpp.dir/src/ThinkingAnalyticsAPI.cpp.o CMakeFiles/tacpp.dir/src/TAUtils.cpp.o CMakeFiles/tacpp.dir/src/TANetworking.cpp.o
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ranlib libtacpp.a

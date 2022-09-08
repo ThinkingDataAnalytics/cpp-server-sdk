@@ -1,16 +1,14 @@
-//
-// Created by 沈和平 on 2022/5/13.
-//
 
-#include "../include/tacpp/TAUtils.h"
+#include "../include/TAUtils.h"
 
-#include <curl/curl.h>
 #include <zlib.h>
-
 #include <algorithm>
 #include <functional>
 
+
 namespace TaSDK {
+
+
 
     string getUUID() {
         char str_uuid[80];
@@ -365,11 +363,6 @@ namespace TaSDK {
         value_.date_time_value.milliseconds = milliseconds;
     }
 
-//        void
-//        utils::TAJSONObject::ValueNode::ToDateTime(const utils::TAJSONObject::ValueNode &node,
-//                                                   time_t *seconds, int *milliseconds) {
-//
-//        }
 
     void TAJSONObject::ValueNode::ToStr(const TAJSONObject::ValueNode &node,
                                           string *buffer) {
@@ -422,156 +415,13 @@ namespace TaSDK {
 
 
     /*********************************  PropertiesNode  *********************************/
-    void PropertiesNode::SetObject(const string &property_name,
-                                   const TAJSONObject &value) {
-        cout << "PropertiesNode ~ SetObject" << endl;
-    }
+//    void PropertiesNode::SetObject(const string &property_name,
+//                                   const TAJSONObject &value) {
+//        cout << "PropertiesNode ~ SetObject" << endl;
+//    }
     /*********************************  PropertiesNode  *********************************/
 
 
-
-    /*********************************  HttpSender  *********************************/
-    HttpService::HttpService(const string &server_url,
-                             const string &appid, const bool debugFlag)
-            :server_url_(server_url), appid_(appid), debugFlag_(debugFlag){
-
-        if (server_url_[std::strlen(server_url_.c_str()) - 1] == '/') {
-            if (debugFlag_) {
-                server_url_ = server_url_ + "data_debug";
-            } else {
-                server_url_ = server_url_ + "sync_server";
-            }
-        } else {
-            if (debugFlag_) {
-                server_url_ = server_url_ + "/data_debug";
-            } else {
-                server_url_ = server_url_ + "/sync_server";
-            }
-        }
-    }
-
-    bool HttpService::send(const string &data) {
-//        string request_body;
-//        if (!encodeToRequestBody(data, &request_body)) {
-//            return false;
-//        }
-
-        if (debugFlag_) {
-            string dataS = data;
-            response = ta_debug_http_post(appid_.c_str(), server_url_.c_str(), dataS.c_str(), 0, strlen(dataS.c_str()), kRequestTimeoutSecond, writeData_);
-        } else {
-            string dataS = "[" + data + "]";
-            response = ta_http_post(appid_.c_str(), server_url_.c_str(), dataS.c_str(),
-                                    1, strlen(dataS.c_str()), kRequestTimeoutSecond, LIB_NAME.c_str(), LIB_VERSION.c_str());
-        }
-
-        if (response->status != 200) {
-            std::cerr << "ThinkingAnalytics SDK send failed: " << response
-                      << std::endl;
-            destroy_http_response(response);
-            return false;
-        } else {
-            destroy_http_response(response);
-        }
-        return true;
-    }
-
-    bool HttpService::gzipString(const string &str,
-                                 string *out_string,
-                                 int compression_level = Z_BEST_COMPRESSION) {
-        z_stream zs;
-        memset(&zs, 0, sizeof(zs));
-
-        if (deflateInit2(&zs, compression_level, Z_DEFLATED,
-                         15 | 16, 8, Z_DEFAULT_STRATEGY) != Z_OK) {
-            std::cerr << "deflateInit2 failed while compressing." << std::endl;
-            return false;
-        }
-
-        zs.next_in = reinterpret_cast<Bytef *>(const_cast<char *>(str.data()));
-        zs.avail_in = static_cast<uInt>(str.size());
-
-        int ret;
-        char out_buffer[32768];
-
-        do {
-            zs.next_out = reinterpret_cast<Bytef *>(out_buffer);
-            zs.avail_out = sizeof(out_buffer);
-
-            ret = deflate(&zs, Z_FINISH);
-
-            if (out_string->size() < zs.total_out) {
-                out_string->append(out_buffer, zs.total_out - out_string->size());
-            }
-        } while (ret == Z_OK);
-
-        deflateEnd(&zs);
-
-        if (ret != Z_STREAM_END) {
-            std::cerr << "Exception during zlib compression: (" << ret << ") " << zs.msg
-                      << std::endl;
-            return false;
-        }
-
-        return true;
-    }
-
-    static const char kBase64Chars[] =
-            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-
-    std::string HttpService::base64Encode(const string &data) {
-        const unsigned char
-                *bytes_to_encode = reinterpret_cast<const unsigned char *>(data.data());
-        size_t in_len = data.length();
-        std::string ret;
-        int i = 0;
-        int j = 0;
-        unsigned char char_array_3[3];
-        unsigned char char_array_4[4];
-
-        while (in_len-- > 0) {
-            char_array_3[i++] = *(bytes_to_encode++);
-            if (i == 3) {
-                char_array_4[0] = (char_array_3[0] & 0xfc) >> 2;
-                char_array_4[1] =
-                        ((char_array_3[0] & 0x03) << 4) + ((char_array_3[1] & 0xf0) >> 4);
-                char_array_4[2] =
-                        ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
-                char_array_4[3] = char_array_3[2] & 0x3f;
-
-                for (i = 0; (i < 4); i++)
-                    ret += kBase64Chars[char_array_4[i]];
-                i = 0;
-            }
-        }
-
-        if (i != 0) {
-            for (j = i; j < 3; j++)
-                char_array_3[j] = '\0';
-            char_array_4[0] = (char_array_3[0] & 0xfc) >> 2;
-            char_array_4[1] =
-                    ((char_array_3[0] & 0x03) << 4) + ((char_array_3[1] & 0xf0) >> 4);
-            char_array_4[2] =
-                    ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
-            char_array_4[3] = char_array_3[2] & 0x3f;
-            for (j = 0; (j < i + 1); j++)
-                ret += kBase64Chars[char_array_4[j]];
-            while ((i++ < 3))
-                ret += '=';
-        }
-        return ret;
-    }
-
-    bool HttpService::encodeToRequestBody(const string &data, string *request_body) {
-        string compressed_data;
-        if (!gzipString(data, &compressed_data)) {
-            return false;
-        }
-        const string base64_encoded_data = base64Encode(compressed_data);
-        *request_body = base64_encoded_data;
-        return true;
-    }
-/*********************************  HttpSender  *********************************/
 
 
 

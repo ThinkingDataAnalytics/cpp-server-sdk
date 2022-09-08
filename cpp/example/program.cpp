@@ -4,15 +4,17 @@
 
 #include <iostream>
 
-#include "include/tacpp/ThinkingAnalyticsAPI.h"
+#include "../include/ThinkingAnalyticsAPI.h"
+#include "../include/TALoggerConsumer.h"
 
 #include <pthread.h>
+#include <thread>
 
 using namespace std;
 
 TaSDK::ThinkingDataAnalytics *p_tga;
 
-void *shushuInit(void *args) {
+int shushuInit() {
 
     cout << "子线程track" << endl;
 
@@ -20,6 +22,24 @@ void *shushuInit(void *args) {
     string distincId = "shp666";
     string eventName = "track_envet";
 
+
+    TaSDK::PropertiesNode _properties;
+    _properties.SetString("name1", "XZ_debug");
+    _properties.SetString("name2", "logbugs");
+    _properties.SetString("name3", "name3");
+    _properties.SetString("#uuid", "1234567890");
+    _properties.SetNumber("test_number_int", 3);
+    _properties.SetNumber("test_number_double", 3.14);
+    _properties.SetBool("test_bool", true);
+    std::string test_string1 = "测试字符串1";
+    _properties.SetString("test_stl_string1", test_string1);
+    timeb t1 = {};
+    ftime(&t1);
+    _properties.SetDateTime("time2", t1.time, t1.millitm);
+    std::vector<std::string> list;
+    list.push_back("item11");
+    list.push_back("item21");
+    _properties.SetList("test_list1", list);
 
     /******************************** track事件 ****************************************/
     TaSDK::PropertiesNode event_properties;
@@ -32,19 +52,26 @@ void *shushuInit(void *args) {
     event_properties.SetBool("test_bool", true);
     std::string test_string = "测试字符串1";
     event_properties.SetString("test_stl_string1", test_string);
-    event_properties.SetDateTime("test_time1", time(nullptr), 0);
     timeb t = {};
     ftime(&t);
-    event_properties.SetDateTime("#time", t.time, t.millitm);
+    event_properties.SetDateTime("time11", t.time, t.millitm);
     std::vector<std::string> test_list;
     test_list.push_back("item11");
     test_list.push_back("item21");
     event_properties.SetList("test_list1", test_list);
 
+    // 複雜數據類型
+    event_properties.SetObject("obj", _properties);
+
+    // 對象組
+    std::vector<TaSDK::TAJSONObject> list_objs;
+    list_objs.push_back(_properties);
+    list_objs.push_back(_properties);
+    event_properties.SetList("objs", list_objs);
+
 
     // track事件
     (*p_tga).track(accountId, distincId, eventName, event_properties);
-
 
 
     // 首次事件
@@ -61,12 +88,12 @@ void *shushuInit(void *args) {
     string updateEventId = "update_001";
     TaSDK::PropertiesNode update_event_properties;
     update_event_properties.SetString("price", "100");
-    update_event_properties.SetString("status", "3");
+    update_event_properties.SetBool("status", 0);
     // 上报后事件属性 status 为 3, price 为 100
     (*p_tga).track_update(accountId, distincId, eventName, updateEventId, update_event_properties);
 
     TaSDK::PropertiesNode update_event_new_properties;
-    update_event_new_properties.SetString("status", "5");
+    update_event_new_properties.SetBool("status", 1);
     // 上报事件后, 属性 status 被更新为 5, price 不变
     (*p_tga).track_update(accountId, distincId, eventName, updateEventId, update_event_new_properties);
 
@@ -161,6 +188,7 @@ void *shushuInit(void *args) {
 
     (*p_tga).flush();
 
+    return 1;
 }
 
 int main(int argc, char *argv[]) {
@@ -168,21 +196,13 @@ int main(int argc, char *argv[]) {
     /*
 * LoogerConsumer
 * */
-    TaSDK::LoggerConsumer::Config config = TaSDK::LoggerConsumer::Config("../../track");
-    config.fileNamePrefix = "test1";
+    TaSDK::LoggerConsumer::Config config = TaSDK::LoggerConsumer::Config("../../../../cpp_sdk_dev_log");
+//    config.fileNamePrefix = "";
     config.rotateMode = TaSDK::LoggerConsumer::HOURLY;
     config.fileSize = 1;
 
     TaSDK::LoggerConsumer logConsumer = TaSDK::LoggerConsumer(config);
     TaSDK::ThinkingDataAnalytics tga = TaSDK::ThinkingDataAnalytics(logConsumer, true);
-
-
-    /*
-  * DebugConsumer
-  **/
-//    TaSDK::DebugConsumer debugConsumer = TaSDK::DebugConsumer("https://global-receiver-ta.thinkingdata.cn", "1b1c1fef65e3482bad5c9d0e6a823356");
-//    TaSDK::ThinkingDataAnalytics tga = TaSDK::ThinkingDataAnalytics(debugConsumer);
-
 
     p_tga = &tga;
 
@@ -191,16 +211,26 @@ int main(int argc, char *argv[]) {
     superProperties.SetString("test_superProperties", "test_super");
     (*p_tga).setSupperProperties(superProperties);
 
+    shushuInit();
 
-    std::cout << "000000" << endl;
-    pthread_t tId;
-    int ret = pthread_create(&tId, NULL, shushuInit, NULL);
-    if (ret != 0) {
-        cout << "线程创建失败" << endl;
-    }
-    std::cout << "1111111" << endl;
+    std::thread threads[10];
+    for (int i=0; i<10; ++i)
+        threads[i] = std::thread(shushuInit);
 
-    pthread_exit(NULL);
+    for (auto& th : threads) th.join();
+
+
+
+
+//    std::cout << "000000" << endl;
+//    pthread_t tId;
+//    int ret = pthread_create(&tId, NULL, shushuInit, NULL);
+//    if (ret != 0) {
+//        cout << "线程创建失败" << endl;
+//    }
+//    std::cout << "1111111" << endl;
+//
+//    pthread_exit(NULL);
 
 
 

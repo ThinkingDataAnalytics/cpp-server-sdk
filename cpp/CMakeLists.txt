@@ -1,8 +1,13 @@
-cmake_minimum_required(VERSION 3.22)
-project(cpp)
+cmake_minimum_required(VERSION 3.23)
 
-set(CMAKE_CXX_STANDARD 98)
+project(cpp-server-sdk)
 
-add_library(tacpp src/ThinkingAnalyticsAPI.cpp include/tacpp/ThinkingAnalyticsAPI.h src/TAUtils.cpp include/tacpp/TAUtils.h src/TANetworking.cpp include/tacpp/TANetworking.h include/tacpp/TAConsumer.h)
+set(CMAKE_CXX_STANDARD 11)
 
-add_subdirectory(example)
+include_directories(include)
+
+# log consumer
+add_library(tacpp src/ThinkingAnalyticsAPI.cpp src/TAUtils.cpp src/TALoggerConsumer.cpp)
+add_executable(program example/program.cpp)
+target_link_libraries(program tacpp)
+
