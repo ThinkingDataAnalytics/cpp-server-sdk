@@ -1,1 +1,1 @@
-# ThinkingAnalytics-CPP-Server SDK
+#ThinkingAnalytics-CPP-Server SDK
