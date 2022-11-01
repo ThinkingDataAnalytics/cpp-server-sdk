@@ -1,5 +1,4 @@
-
-#include "../include/ThinkingAnalyticsAPI.h"
+#include "ThinkingAnalyticsAPI.h"
 
 
 #ifdef WIN32 //Windows
@@ -245,7 +244,5 @@ namespace TaSDK {
         supperProperties.Clear();
         // TA_UNLOCK(&ta_mutex);
     }
-
-/*********************************  ThinkingDataAnalytics  *********************************/
 
 } // TaSDK

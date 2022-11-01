@@ -1,7 +1,3 @@
-//
-// Created by 沈和平 on 2022/5/12.
-//
-
 #ifndef CPP_THINKINGANALYTICSAPI_H
 #define CPP_THINKINGANALYTICSAPI_H
 
@@ -18,7 +14,6 @@
 #include "TAUtils.h"
 
 using namespace std;
-
 
 namespace TaSDK {
 

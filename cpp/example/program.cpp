@@ -196,7 +196,7 @@ int main(int argc, char *argv[]) {
     /*
 * LoogerConsumer
 * */
-    TaSDK::LoggerConsumer::Config config = TaSDK::LoggerConsumer::Config("../../../../cpp_sdk_dev_log");
+    TaSDK::LoggerConsumer::Config config = TaSDK::LoggerConsumer::Config("/Users/wwango/Documents/cpp_sdk_log");
 //    config.fileNamePrefix = "";
     config.rotateMode = TaSDK::LoggerConsumer::HOURLY;
     config.fileSize = 1;
@@ -212,27 +212,6 @@ int main(int argc, char *argv[]) {
     (*p_tga).setSupperProperties(superProperties);
 
     shushuInit();
-
-    std::thread threads[10];
-    for (int i=0; i<10; ++i)
-        threads[i] = std::thread(shushuInit);
-
-    for (auto& th : threads) th.join();
-
-
-
-
-//    std::cout << "000000" << endl;
-//    pthread_t tId;
-//    int ret = pthread_create(&tId, NULL, shushuInit, NULL);
-//    if (ret != 0) {
-//        cout << "线程创建失败" << endl;
-//    }
-//    std::cout << "1111111" << endl;
-//
-//    pthread_exit(NULL);
-
-
 
     return 0;
 }

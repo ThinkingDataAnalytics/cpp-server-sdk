@@ -1,12 +1,20 @@
-#include "../include/TALoggerConsumer.h"
-#include "../include/TAUtils.h"
+#include "TALoggerConsumer.h"
+#include "TAUtils.h"
 
 #if defined(_WIN32)
 #include <windows.h>
+#include <direct.h>
 #include <iostream>
 #include <fstream>
-#include <direct.h>
+#else
+#include <unistd.h>
+#include <sys/stat.h>
+#include <iostream>
+#include <fstream>
 #endif
+
+
+
 
 namespace TaSDK {
 

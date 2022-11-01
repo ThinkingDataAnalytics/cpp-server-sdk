@@ -21,7 +21,7 @@ const std::string kPathSeparator =
 namespace TaSDK {
     using namespace std;
 
-    const string LIB_VERSION = "1.1.0";
+    const string LIB_VERSION = "1.2.0";
     const string LIB_NAME = "tga_cpp_sdk";
 
     /*!
@@ -155,9 +155,6 @@ namespace TaSDK {
     };
 
     class PropertiesNode : public TAJSONObject {};
-
-
-
 
 } // TaSDK
 
