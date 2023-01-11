@@ -23,7 +23,6 @@ namespace TaSDK {
 
         bool enableUUID;
 
-        // 公共属性
         PropertiesNode supperProperties;
 
         pthread_mutex_t mutex_t;
@@ -34,122 +33,122 @@ namespace TaSDK {
         ThinkingDataAnalytics(TAConsumer &consumer, bool enableUUID);
 
         /*!
-         * 上报事件
-         * @param accountId      账号 ID
-         * @param distinctId     访客ID
-         * @param eventName      事件名称
-         * @param properties     事件属性
-         */
+          * Report incident
+          * @param accountId Account ID
+          * @param distinctId visitor ID
+          * @param eventName event name
+          * @param properties event properties
+          */
         void track(const string &accountId, const string &distinctId, const string &eventName,
                    const PropertiesNode &properties);
 
         /*!
-         * 首次事件
-         * @param accountId      账号 ID
-         * @param distinctId     访客ID
-         * @param eventName      事件名称
-         * @param properties     事件属性
-         */
+           * first event
+           * @param accountId Account ID
+           * @param distinctId visitor ID
+           * @param eventName event name
+           * @param properties event properties
+           */
         void track_first(const string &accountId, const string &distinctId, const string &eventName,
                          const PropertiesNode &properties);
 
         /*!
-         * 可更新事件
-         * @param accountId      账号 ID
-         * @param distinctId     访客ID
-         * @param eventName      事件名称
-         * @param eventId        事件ID
-         * @param properties     事件属性
-         */
+          * Updatable events
+          * @param accountId Account ID
+          * @param distinctId visitor ID
+          * @param eventName event name
+          * @param eventId event ID
+          * @param properties event properties
+          */
         void
         track_update(const string &accountId, const string &distinctId, const string &eventName, const string &eventId,
                      const PropertiesNode &properties);
 
 
         /*!
-         * 可重写事件
-         * @param accountId      账号 ID
-         * @param distinctId     访客ID
-         * @param eventName      事件名称
-         * @param eventId        事件ID
-         * @param properties     事件属性
+         * overwrite event
+          * @param accountId Account ID
+          * @param distinctId visitor ID
+          * @param eventName event name
+          * @param eventId event ID
+          * @param properties event properties
          */
         void track_overwrite(const string &accountId, const string &distinctId, const string &eventName,
                              const string &eventId, const PropertiesNode &properties);
 
         /*!
-         * 设置用户属性. 如果属性已经存在，则覆盖; 否则，新创建用户属性
-         * @param accountId      账号 ID
-         * @param distinctId     访客ID
-         * @param properties     事件属性
+          * Set the user attribute. If the attribute already exists, it is overwritten; otherwise, the newly created user attribute
+          * @param accountId Account ID
+          * @param distinctId visitor ID
+          * @param properties event properties
          */
         void user_set(const string &accountId, const string &distinctId, const PropertiesNode &properties);
 
         /*!
-         * 设置用户属性. 如果该属性已经存在，该操作无效.
-         * @param accountId      账号 ID
-         * @param distinctId     访客ID
-         * @param properties     事件属性
+          * Set the user attribute. If the attribute already exists, the operation has no effect.
+          * @param accountId Account ID
+          * @param distinctId visitor ID
+          * @param properties event properties
          */
         void user_setOnce(const string &accountId, const string &distinctId, const PropertiesNode &properties);
 
         /*!
-         * 用户属性修改，只支持数字属性增加的接口
-         * @param accountId      账号 ID
-         * @param distinctId     访客ID
-         * @param properties     事件属性
+          * User attribute modification, only supports the interface for adding digital attributes
+          * @param accountId Account ID
+          * @param distinctId visitor ID
+          * @param properties event properties
          */
         void user_add(const string &accountId, const string &distinctId, const PropertiesNode &properties);
 
         /*!
-         * 用户的数组类型的属性追加
-         * @param accountId      账号 ID
-         * @param distinctId     访客ID
-         * @param properties     事件属性
+          * The user's array type attribute append
+          * @param accountId Account ID
+          * @param distinctId visitor ID
+          * @param properties event properties
          */
         void user_append(const string &accountId, const string &distinctId, const PropertiesNode &properties);
 
         /*!
-         * 用户的数组类型的属性去重追加
-         * @param accountId      账号 ID
-         * @param distinctId     访客ID
-         * @param properties     事件属性
+          * The attribute of the user's array type is deduplicated and appended
+          * @param accountId Account ID
+          * @param distinctId visitor ID
+          * @param properties event properties
          */
         void user_uniqAppend(const string &accountId, const string &distinctId, const PropertiesNode &properties);
 
         /*!
-         * 删除用户指定的属性
-         * @param accountId      账号 ID
-         * @param distinctId     访客ID
-         * @param properties     事件属性, key对应的value设为0，即删除用户该key属性
+          * Delete user-specified attributes
+          * @param accountId Account ID
+          * @param distinctId visitor ID
+          * @param properties event attribute, the value corresponding to the key is set to 0, that is, the key attribute of the user is deleted
          */
         void user_unset(const string &accountId, const string &distinctId, const PropertiesNode &properties);
 
         /*!
-        * 删除用户，此操作不可逆
-        * @param accountId      账号 ID
-        * @param distinctId     访客ID
+        * Delete a user, this operation is irreversible
+        * @param accountId Account ID
+        * @param distinctId visitor ID
         */
         void user_del(const string &accountId, const string &distinctId);
 
         /*!
-         * 立即上报数据到接收端
+         * Immediately report data to the receiving end
          */
         void flush();
 
         /*!
-         * 关闭并退出 sdk 所有线程，停止前会清空所有本地数据
+         * Close and exit all threads of sdk, all local data will be cleared before stopping
          */
         void close();
 
         /*!
-         * 设置公共属性
-         * @param supperProperties 公共属性
+         * Set static public properties
+         * @param supperProperties static public properties
          */
         void setSupperProperties(const PropertiesNode &supperProperties);
 
         /*!
-         * 清除公共事件属性
+         * Clear public event attributes
          */
         void clearSuperProperties();
 

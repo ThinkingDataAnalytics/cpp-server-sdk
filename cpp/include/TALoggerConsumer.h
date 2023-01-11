@@ -10,31 +10,31 @@ namespace TaSDK {
     class LoggerConsumer : public TAConsumer {
 
     public:
-        // 日志切分模式
         enum RotateMode {
-            DAILY,             // 以天为单元
-            HOURLY             // 以小时为单元
+            DAILY,             // in days
+            HOURLY             // in hours
         };
 
     private:
-        string fileName;                   // 文件名称
-        int bufferSize;                     // messageBuffer 写入文件中的大小阈值, 即执行flush;
-        int fileSize;                       // 单个文件大小
-        string messageBuffer;                  // 缓存每条事件数据到内存中
+        string fileName;                    // file name
+        int bufferSize;                     // messageBuffer writes the size threshold in the file
+        int fileSize;                       // single file size
+        string messageBuffer;               // Cache each event data into memory
+        int messageCount;                   // Cache event data count into memory
         RotateMode rotateMode;
 
     public:
         class Config {
 
         public:
-            string logDirectory;                           // 数据入库目录
-            int bufferSize;                             // 内存缓存大小
-            RotateMode rotateMode;                 // 默认以天为单元对日志进行分割
-            string fileNamePrefix;                         // 日志文件前缀
-            int fileSize;                             // 单个文件的大小阈值，默认值 0 代表 无穷大, 单位M
+            string logDirectory;                        // Data storage directory
+            int bufferSize;                             // memory cache size
+            RotateMode rotateMode;                      // By default, the log is divided into days
+            string fileNamePrefix;                      // log file prefix
+            int fileSize;                               // The size threshold of a single file, the default value is 0 means infinity, the unit is M
 
         public:
-            Config(const string &logDir, const int bufferS = 8192);
+            Config(const string &logDir, const int bufferS = 20);
         };
 
     public:

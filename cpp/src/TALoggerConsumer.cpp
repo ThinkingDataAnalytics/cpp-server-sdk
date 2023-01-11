@@ -22,21 +22,20 @@ namespace TaSDK {
 
     LoggerConsumer::LoggerConsumer(const Config &config) {
         if (config.logDirectory.size() <= 0) {
-            ErrorLog("指定的目录路径logDirectory不能为空！");
+            ErrorLog("The specified directory path logDirectory cannot be empty！");
             return;
         }
         fileName = config.logDirectory;
 
-        // 判断文件夹是否存在
         if (access(fileName.c_str(), F_OK) == -1) {
 #ifdef WIN32
-            int flag = mkdir(fileName.c_str());  //Windows创建文件夹
+            int flag = mkdir(fileName.c_str());
 #else
-            int flag = mkdir(fileName.c_str(), S_IRWXU);  //Linux创建文件夹
+            int flag = mkdir(fileName.c_str(), S_IRWXU);
 #endif
-            if (flag == 0) {  //创建成功
+            if (flag == 0) {
                 std::cout << "Create directory successfully." << std::endl;
-            } else { //创建失败
+            } else {
                 std::cout << "Fail to create directory." << std::endl;
                 throw std::exception();
             }
@@ -48,7 +47,6 @@ namespace TaSDK {
             fileName = fileName + kPathSeparator + "log.";
         }
 
-        // 基于当前系统的当前日期/时间
         time_t now = time(0);
         tm *ltm = localtime(&now);
         fileName += to_string((1900 + ltm->tm_year));
@@ -65,13 +63,14 @@ namespace TaSDK {
         rotateMode = config.rotateMode;
         bufferSize = config.bufferSize;
         fileSize = config.fileSize;
+        messageCount = 0;
 
-        cout << "LoggerConsumer初始化成功" << endl;
+        cout << "LoggerConsumer Initialization successful" << endl;
     }
 
     LoggerConsumer::Config::Config(const string &logDir, const int bufferS) : logDirectory(logDir),
                                                                               bufferSize(bufferS) {
-        cout << "Config初始化成功" << endl;
+        cout << "Config Initialization successful" << endl;
     }
 
     void LoggerConsumer::add(const string &record) {
@@ -81,8 +80,9 @@ namespace TaSDK {
         }
         messageBuffer += record;
         messageBuffer += "\n";
+        messageCount++;
 
-        if (sizeof(messageBuffer) >= bufferSize) {
+        if (messageCount >= bufferSize) {
             flush();
         }
     }
@@ -111,7 +111,7 @@ namespace TaSDK {
         return fullFileName;
     }
 
-    ofstream outFile;                        // 打开文件
+    ofstream outFile;
     string currentFileNamePath;
 
     void LoggerConsumer::flush() {
@@ -136,7 +136,9 @@ namespace TaSDK {
         } else {
             ErrorLog("File open fail.");
         }
+        messageCount = 0;
         // TA_UNLOCK(&ta_mutex);
+
     }
 
     void LoggerConsumer::close() {

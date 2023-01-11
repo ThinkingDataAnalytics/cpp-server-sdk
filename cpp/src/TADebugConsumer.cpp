@@ -38,7 +38,6 @@ namespace TaSDK {
         datas = datas.substr(0, datas.length() - 1);
         datas.append("]");
 
-        // dryRun=0，如果校验通过就会入库。 dryRun=1，不会入库
         int dryRun = 1;
         long code = m_network.debug_post(m_serverUrl, m_appId, datas, size, strResponse, dryRun);
         if (code == 200) {

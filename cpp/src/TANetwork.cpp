@@ -49,13 +49,6 @@ namespace TaSDK {
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data.c_str());
         curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, data.length());
 
-        // 若使用 HTTPS，有两种配置方式，选用其中一种即可：
-
-        // 1. 使用 CA 证书（下载地址 http://curl.haxx.se/ca/cacert.pem
-        // ），去掉下面一行的注释，并指定证书路径，例如证书在当前目录下
-        // curl_easy_setopt(curl, CURLOPT_CAINFO, "cacert.pem");
-
-        // 2. 不验证服务端证书，去掉下面两行的注释
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
 
@@ -125,16 +118,6 @@ namespace TaSDK {
         curl_easy_setopt(curl, CURLOPT_POST, 1L);
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, final_datas_.c_str());
         curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, final_datas_.length());
-
-        // 若使用 HTTPS，有两种配置方式，选用其中一种即可：
-
-        // 1. 使用 CA 证书（下载地址 http://curl.haxx.se/ca/cacert.pem
-        // ），去掉下面一行的注释，并指定证书路径，例如证书在当前目录下
-        // curl_easy_setopt(curl, CURLOPT_CAINFO, "cacert.pem");
-
-        // 2. 不验证服务端证书，去掉下面两行的注释
-//    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
-//    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
 
         {
             char buffer[64];

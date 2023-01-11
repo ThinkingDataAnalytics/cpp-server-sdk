@@ -8,7 +8,7 @@
 #include <regex>
 #include <sstream>
 
-#define ErrorLog(errorMsg) cerr << "ERROR: 【" << __FILE__ << " -> 行号: " << __LINE__ << " -> 函数: " << __FUNCTION__ << "】【错误信息: " << errorMsg << "】" << endl;
+#define ErrorLog(errorMsg) cerr << "ERROR: 【" << __FILE__ << " -> line number: " << __LINE__ << " -> function name: " << __FUNCTION__ << "】【error message: " << errorMsg << "】" << endl;
 
 const std::string kPathSeparator =
 #if defined _WIN32 || defined __CYGWIN__
@@ -25,14 +25,14 @@ namespace TaSDK {
     const string LIB_NAME = "tga_cpp_sdk";
 
     /*!
-     * 获取随机UUID
+     * Get random UUID
      * @return
      */
     string getUUID();
 
     /*!
-     * TAJSONObject 类
-     * 主要用于处理 TAJSONObject 类中的 map 属性 properties_map_
+    * TAJSONObject class
+     * Mainly used to process the map attribute properties_map_ in the TAJSONObject class
      */
     class TAJSONObject {
     public:
@@ -57,7 +57,6 @@ namespace TaSDK {
         void SetDateTime(const string &property_name, time_t seconds,
                          int milliseconds);
 
-        // 字符串格式需要是: 2018-09-07 16:30:22.567
         void SetDateTime(const string &property_name, const string &value);
 
         void Clear();
@@ -93,10 +92,6 @@ namespace TaSDK {
         };
     };
 
-    /*!
-     * ValueNode 类
-     * 可以设置各种类型的value的集成
-     */
     class TAJSONObject::ValueNode {
     public:
 

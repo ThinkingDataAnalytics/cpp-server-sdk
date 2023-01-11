@@ -19,15 +19,6 @@
 
 #include <string>
 
-
-pthread_mutex_t ta_mutex;
-//初始化互斥锁
-//pthread_mutex_init(&ta_mutex, 0);
-
-
-#define TA_LOCK(t) pthread_mutex_lock(t)
-#define TA_UNLOCK(t) pthread_mutex_unlock(t)
-
 const static string TA_TRACK                      = "track";
 const static string TA_TRACK_UPDATE               = "track_update";
 const static string TA_TRACK_OVERWRITE            = "track_overwrite";
@@ -46,13 +37,12 @@ namespace TaSDK {
     ThinkingDataAnalytics::ThinkingDataAnalytics(TAConsumer &consumer): consumer(consumer) {
         enableUUID = false;
         pthread_mutex_init(&mutex_t, 0);
-
-        cout << " 0 - ThinkingDataAnalytics初始化成功" << endl;
+        cout << " 0 - ThinkingDataAnalytics Initialization successful" << endl;
     }
 
     ThinkingDataAnalytics::ThinkingDataAnalytics(TAConsumer &consumer, bool enableUUID): consumer(consumer), enableUUID(enableUUID) {
         pthread_mutex_init(&mutex_t, 0);
-        cout << " 1 - ThinkingDataAnalytics初始化成功" << endl;
+        cout << " 1 - ThinkingDataAnalytics Initialization successful" << endl;
     }
 
     void ThinkingDataAnalytics::track(const string &accountId, const string &distinctId, const string &eventName, const PropertiesNode &properties) {
@@ -137,7 +127,9 @@ namespace TaSDK {
     }
 
     void ThinkingDataAnalytics::close() {
+        pthread_mutex_lock(&mutex_t);
         consumer.close();
+        pthread_mutex_unlock(&mutex_t);
     }
 
     void ThinkingDataAnalytics::add(const string &accountId, const string &distinctId, const string &eventType, const string &eventName, const string &eventId, TAJSONObject properties) {
@@ -148,13 +140,11 @@ namespace TaSDK {
         TAJSONObject propertiesDic;
         TAJSONObject finalPropertiesDic;
 
-        // 处理UUID
         bool transferUUIDFlag = transferWithStringMap("#uuid", properties, finalPropertiesDic);
         if (!transferUUIDFlag && enableUUID) {
             finalPropertiesDic.SetString("#uuid", getUUID());
         }
 
-        // 加入accountId or distinctId
         if (distinctId.size()) {
             finalPropertiesDic.SetString("#distinct_id", distinctId);
         }
@@ -162,10 +152,8 @@ namespace TaSDK {
             finalPropertiesDic.SetString("#account_id", accountId);
         }
 
-        // 处理appId
         transferWithStringMap("#app_id", properties, finalPropertiesDic);
 
-        // 处理time
         bool transforTimeFlag = transferWithStringMap("#time", properties, finalPropertiesDic);
         if (!transforTimeFlag) {
             timeb t;
@@ -173,13 +161,11 @@ namespace TaSDK {
             finalPropertiesDic.SetDateTime("#time", t.time, t.millitm);
         }
 
-        // 预置属性提取
         transferWithStringMap("#ip", properties, finalPropertiesDic);
         transferWithStringMap("#first_check_id", properties, finalPropertiesDic);
         transferWithStringMap("#transaction_property", properties, finalPropertiesDic);
         transferWithStringMap("#import_tool_id", properties, finalPropertiesDic);
 
-        // 上传事件类型
         finalPropertiesDic.SetString("#type", eventType);
 
         if (eventType == TA_TRACK || eventType == TA_TRACK_UPDATE || eventType == TA_TRACK_OVERWRITE) {
@@ -189,7 +175,6 @@ namespace TaSDK {
                 ErrorLog("The event name must be provided.");
             }
 
-            // 对 可更新事件、可重写事件 的 eventId 校验
             if (eventType == TA_TRACK_UPDATE || eventType == TA_TRACK_OVERWRITE) {
                 if (eventId.size()) {
                     finalPropertiesDic.SetString("#event_id", eventId);
@@ -234,15 +219,15 @@ namespace TaSDK {
     }
 
     void ThinkingDataAnalytics::setSupperProperties(const PropertiesNode &supperProperties) {
-        // TA_LOCK(&ta_mutex);
+        pthread_mutex_lock(&mutex_t);
         ThinkingDataAnalytics::supperProperties = supperProperties;
-        // TA_UNLOCK(&ta_mutex);
+        pthread_mutex_unlock(&mutex_t);
     }
 
     void ThinkingDataAnalytics::clearSuperProperties() {
-        // TA_LOCK(&ta_mutex);
-        supperProperties.Clear();
-        // TA_UNLOCK(&ta_mutex);
+         pthread_mutex_lock(&mutex_t);
+         supperProperties.Clear();
+         pthread_mutex_unlock(&mutex_t);
     }
 
 } // TaSDK
