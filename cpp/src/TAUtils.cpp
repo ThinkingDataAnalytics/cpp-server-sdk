@@ -32,9 +32,10 @@ namespace TaSDK {
 
 
     bool assertProperties(const string &key) {
-        regex keyPattern("^(#[a-z][a-z0-9_]{0,49})|([a-z][a-z0-9_]{0,50})$", regex::icase|regex::ECMAScript);
-        smatch result;
-        return regex_match(key, result, keyPattern);
+//        regex keyPattern("^(#[a-z][a-z0-9_]{0,49})|([a-z][a-z0-9_]{0,50})$", regex::icase|regex::ECMAScript);
+//        smatch result;
+//        return regex_match(key, result, keyPattern);
+        return true;
     }
 
     void TAJSONObject::SetNumber(const string &property_name, double value) {
