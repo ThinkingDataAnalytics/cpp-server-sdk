@@ -5,7 +5,7 @@
 
 namespace TaSDK {
 
-    TABatchConsumer::TABatchConsumer(string appid, string serverUrl, int batchSize, bool debug) {
+    TABatchConsumer::TABatchConsumer(string appid, string serverUrl, int32_t batchSize, bool debug) {
         m_appId = appid;
         m_batchSize = batchSize;
         m_serverUrl = serverUrl+"/sync_server";
@@ -27,18 +27,18 @@ namespace TaSDK {
     void TABatchConsumer::flush() {
         string strResponse;
         string datas = "[";
-        int size = m_dataList.size();
+        int32_t size = m_dataList.size();
 
         if (size <= 0) return;
 
-        for (int i=0; i<size; i++) {
+        for (int32_t i=0; i<size; i++) {
             datas.append(m_dataList[i]);
             datas.append(",");
         }
         datas = datas.substr(0, datas.length() - 1);
         datas.append("]");
 
-        long code = m_network.post(m_serverUrl, m_appId, datas, size, strResponse);
+        int64_t code = m_network.post(m_serverUrl, m_appId, datas, size, strResponse);
         if (code == 200) {
             if (m_debug) {
                 fprintf(stdout, "thinkingdata network success: \n");

@@ -14,7 +14,8 @@ namespace TaSDK {
 
     class TABatchConsumer : public TAConsumer {
     public:
-        TABatchConsumer(string appid, string serverUrl, int batchSize = 20, bool debug = false);
+    
+        TABatchConsumer(string appid, string serverUrl, int32_t batchSize = 20, bool debug = false);
         ~TABatchConsumer();
         void add(const string &record);
         void flush();
@@ -24,7 +25,7 @@ namespace TaSDK {
         bool m_debug;
         string m_serverUrl;
         string m_appId;
-        int m_batchSize;
+        int32_t m_batchSize;
         vector<string> m_dataList;
         TANetwork m_network;
     };

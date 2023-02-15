@@ -24,7 +24,7 @@ namespace TaSDK {
         bool m_debug;
         string m_serverUrl;
         string m_appId;
-        int m_batchSize;
+        int32_t m_batchSize;
         vector<string> m_dataList;
         TANetwork m_network;
     };

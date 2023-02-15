@@ -17,7 +17,7 @@
 #include <fstream>
 #endif
 
-#include <string>
+#include <cstring>
 
 const static string TA_TRACK                      = "track";
 const static string TA_TRACK_UPDATE               = "track_update";

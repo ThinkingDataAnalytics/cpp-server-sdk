@@ -31,11 +31,11 @@ namespace TaSDK {
 
     }
 
-    long TANetwork::post(const string &url, const string &appid, string &data, int dataSize, string &strResponse)
+    int64_t TANetwork::post(const string &url, const string &appid, string &data, int32_t dataSize, string &strResponse)
     {
         CURL *curl;
         CURLcode res;
-        int timeout_seconds = 10;
+        int32_t timeout_seconds = 10;
         struct curl_slist *header_list = NULL;
 
         curl = curl_easy_init();
@@ -90,13 +90,13 @@ namespace TaSDK {
             curl_easy_cleanup(curl);
             return -1;
         }
-        long responseCode;
+        int64_t responseCode;
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &responseCode);
         curl_easy_cleanup(curl);
         return responseCode;
     }
 
-    long TANetwork::debug_post(const string &url, const string &appid, string &data, int dataSize, string &strResponse, int dryRun)
+    int64_t TANetwork::debug_post(const string &url, const string &appid, string &data, int32_t dataSize, string &strResponse, int32_t dryRun)
     {
         CURL *curl;
         CURLcode res;
@@ -141,7 +141,7 @@ namespace TaSDK {
             return -1;
         }
 
-        long responseCode;
+        int64_t responseCode;
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &responseCode);
         curl_easy_cleanup(curl);
         return responseCode;

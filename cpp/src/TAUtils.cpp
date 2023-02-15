@@ -106,7 +106,7 @@ namespace TaSDK {
     void TAJSONObject::SetString(const string &property_name, const string &value) {
         if (value.length() > kStringPropertyValueMaxLength) {
             std::cerr << "String property '" << property_name
-                      << "' is too long, value: " << value << std::endl;
+                      << "' is too int64_t, value: " << value << std::endl;
             return;
         }
         if (!CheckUtf8Valid(value)) {
@@ -159,7 +159,7 @@ namespace TaSDK {
 
     void TAJSONObject::SetDateTime(const string &property_name,
                                    const time_t seconds,
-                                   int milliseconds) {
+                                   int32_t milliseconds) {
         if (!assertProperties(property_name)) {
             ErrorLog("Invalid key format: " + property_name);
         }
@@ -272,7 +272,7 @@ namespace TaSDK {
 
    /*********************************  TAJSONObject  *********************************/
     void TAJSONObject::ValueNode::DumpDateTime(const time_t &seconds,
-                                               int milliseconds,
+                                               int32_t milliseconds,
                                                string *buffer) {
         struct tm tm = {};
         TD_SDK_LOCALTIME(&seconds, &tm);
@@ -304,7 +304,9 @@ namespace TaSDK {
 
     bool TAJSONObject::ContainsWithKey(const string &key) {
         map<string, ValueNode>::const_iterator iter = properties_map_.find(key);
-        if (iter->first == key) {
+
+        if(iter != properties_map_.end())
+        {
             return true;
         } else {
             return false;
@@ -357,7 +359,7 @@ namespace TaSDK {
             : node_type_(OBJECTS),
               list_obj_(value) {}
 
-    TAJSONObject::ValueNode::ValueNode(time_t seconds, int milliseconds)
+    TAJSONObject::ValueNode::ValueNode(time_t seconds, int32_t milliseconds)
             : node_type_(DATETIME) {
         value_.date_time_value.seconds = seconds;
         value_.date_time_value.milliseconds = milliseconds;

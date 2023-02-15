@@ -7,6 +7,7 @@
 #include <vector>
 #include <regex>
 #include <sstream>
+#include <cstring>
 
 #define ErrorLog(errorMsg) cerr << "ERROR: 【" << __FILE__ << " -> line number: " << __LINE__ << " -> function name: " << __FUNCTION__ << "】【error message: " << errorMsg << "】" << endl;
 
@@ -21,7 +22,7 @@ const std::string kPathSeparator =
 namespace TaSDK {
     using namespace std;
 
-    const string LIB_VERSION = "1.2.1";
+    const string LIB_VERSION = "1.2.2";
     const string LIB_NAME = "tga_cpp_sdk";
 
     /*!
@@ -55,7 +56,7 @@ namespace TaSDK {
         void SetList(const string &property_name, const std::vector<TAJSONObject> &value);
 
         void SetDateTime(const string &property_name, time_t seconds,
-                         int milliseconds);
+                         int32_t milliseconds);
 
         void SetDateTime(const string &property_name, const string &value);
 
@@ -101,7 +102,7 @@ namespace TaSDK {
 
         explicit ValueNode(double value);
 
-        explicit ValueNode(long long value);
+        explicit ValueNode(int64_t value);
 
         explicit ValueNode(const string &value);
 
@@ -113,7 +114,7 @@ namespace TaSDK {
 
         explicit ValueNode(const std::vector<TAJSONObject> &value);
 
-        ValueNode(time_t seconds, int milliseconds);
+        ValueNode(time_t seconds, int32_t milliseconds);
 
         static void ToStr(const ValueNode &node, string *buffer);
 
@@ -124,21 +125,21 @@ namespace TaSDK {
 
         static void DumpList(const std::vector<TAJSONObject> &value, string *buffer);
 
-        static void DumpDateTime(const time_t &seconds, int milliseconds,
+        static void DumpDateTime(const time_t &seconds, int32_t milliseconds,
                                  string *buffer);
 
         static void DumpNumber(double value, string *buffer);
 
-        static void DumpNumber(long long value, string *buffer);
+        static void DumpNumber(int64_t value, string *buffer);
 
         union UnionValue {
             double number_value;
             bool bool_value;
             struct {
                 std::time_t seconds;
-                int milliseconds;
+                int32_t milliseconds;
             } date_time_value;
-            long long int_value;
+            int64_t int_value;
 
             UnionValue() { memset(this, 0, sizeof(UnionValue)); }
         } value_;

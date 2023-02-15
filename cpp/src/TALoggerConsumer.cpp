@@ -29,9 +29,9 @@ namespace TaSDK {
 
         if (access(fileName.c_str(), F_OK) == -1) {
 #ifdef WIN32
-            int flag = mkdir(fileName.c_str());
+            int32_t flag = mkdir(fileName.c_str());
 #else
-            int flag = mkdir(fileName.c_str(), S_IRWXU);
+            int32_t flag = mkdir(fileName.c_str(), S_IRWXU);
 #endif
             if (flag == 0) {
                 std::cout << "Create directory successfully." << std::endl;
@@ -68,8 +68,8 @@ namespace TaSDK {
         cout << "LoggerConsumer Initialization successful" << endl;
     }
 
-    LoggerConsumer::Config::Config(const string &logDir, const int bufferS) : logDirectory(logDir),
-                                                                              bufferSize(bufferS) {
+    LoggerConsumer::Config::Config(const string &logDir, const int bufferSize) : logDirectory(logDir),
+                                                                              bufferSize(bufferSize) {
         cout << "Config Initialization successful" << endl;
     }
 
@@ -89,12 +89,12 @@ namespace TaSDK {
 
     string LoggerConsumer::getFileName() {
         // TA_LOCK(&ta_mutex);
-        int count = 0;
+        int32_t count = 0;
         string fullFileName = fileName + "_" + to_string(count);
         if (fileSize > 0) {
             ifstream inFile(fullFileName, ios::in | ios::binary);
             while (inFile) {
-                long l, m;
+                int64_t l, m;
                 l = inFile.tellg();
                 inFile.seekg(0, ios::end);
                 m = inFile.tellg();

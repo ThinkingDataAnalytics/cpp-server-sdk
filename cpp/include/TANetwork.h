@@ -14,8 +14,9 @@ namespace TaSDK {
     public:
         TANetwork(void);
         ~TANetwork(void);
-        long post(const string &url, const string &appid, string &data, int dataSize, string &strResponse);
-        long debug_post(const string &url, const string &appid, string &data, int dataSize, string &strResponse, int dryRun);
+        
+        int post(const string &url, const string &appid, string &data, int32_t dataSize, string &strResponse);
+        int64_t debug_post(const string &url, const string &appid, string &data, int32_t dataSize, string &strResponse, int32_t dryRun);
     };
 };
 

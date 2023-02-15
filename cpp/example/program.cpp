@@ -16,11 +16,10 @@ using namespace TaSDK;
 int main(int argc, char *argv[]) {
 
     // Init SDK
-    static LoggerConsumer::Config config = LoggerConsumer::Config("/Users/charles/Documents/cpp_sdk_log");
+    static LoggerConsumer::Config config = LoggerConsumer::Config("/Users/charles/Desktop/cpp_sdk_log");
     config.fileNamePrefix = "YYDS";
     config.rotateMode = LoggerConsumer::HOURLY;
     config.fileSize = 1;
-    config.bufferSize = 30;
 
     LoggerConsumer logConsumer = LoggerConsumer(config);
     ThinkingDataAnalytics tga = ThinkingDataAnalytics(logConsumer, true);
@@ -30,7 +29,6 @@ int main(int argc, char *argv[]) {
     PropertiesNode superProperties;
     superProperties.SetString("test_superProperties", "test_super");
     p_tga.setSupperProperties(superProperties);
-
 
 
     // id info
@@ -81,10 +79,8 @@ int main(int argc, char *argv[]) {
     list_objs.push_back(_properties);
     list_objs.push_back(_properties);
     event_properties.SetList("objs", list_objs);
-
-
+    
     p_tga.track(accountId, distincId, eventName, event_properties);
-
 
     eventName = "first_envet";
     event_properties.SetString("#first_check_id", "first_event");

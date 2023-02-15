@@ -27,19 +27,19 @@ namespace TaSDK {
     void TADebugConsumer::flush() {
         string strResponse;
         string datas = "[";
-        int size = m_dataList.size();
+        int32_t size = m_dataList.size();
 
         if (size <= 0) return;
 
-        for (int i=0; i<size; i++) {
+        for (int32_t i=0; i<size; i++) {
             datas.append(m_dataList[i]);
             datas.append(",");
         }
         datas = datas.substr(0, datas.length() - 1);
         datas.append("]");
 
-        int dryRun = 1;
-        long code = m_network.debug_post(m_serverUrl, m_appId, datas, size, strResponse, dryRun);
+        int32_t dryRun = 1;
+        int64_t code = m_network.debug_post(m_serverUrl, m_appId, datas, size, strResponse, dryRun);
         if (code == 200) {
             if (m_debug) {
                 fprintf(stdout, "thinkingdata network success: \n");
