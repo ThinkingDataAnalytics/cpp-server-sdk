@@ -82,6 +82,7 @@ namespace TaSDK {
         messageBuffer += "\n";
         messageCount++;
 
+        // When there is data to upload, when the number of data cache reaches the bufferSize, upload the data immediately
         if (messageCount >= bufferSize) {
             flush();
         }

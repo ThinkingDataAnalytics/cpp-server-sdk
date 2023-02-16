@@ -17,7 +17,7 @@ namespace TaSDK {
 
     private:
         string fileName;                    // file name
-        int32_t bufferSize;                     // messageBuffer writes the size threshold in the file
+        int32_t bufferSize;                     // When there is data to upload, when the number of data cache reaches the bufferSize, upload the data immediately
         int32_t fileSize;                       // single file size
         string messageBuffer;               // Cache each event data into memory
         int32_t messageCount;                   // Cache event data count into memory
@@ -29,12 +29,13 @@ namespace TaSDK {
         public:
         
             string logDirectory;                        // Data storage directory
-            int32_t bufferSize;                             // memory cache size
+            int32_t bufferSize;                          // When there is data to upload, when the number of data cache reaches the bufferSize, upload the data immediately
             RotateMode rotateMode;                      // By default, the log is divided into days
             string fileNamePrefix;                      // log file prefix
             int32_t fileSize;                               // The size threshold of a single file, the default value is 0 means infinity, the unit is M
 
         public:
+            // When there is data to upload, when the number of data cache reaches the bufferSize, upload the data immediately, default 20
             Config(const string &logDir, const int32_t bufferSize = 20);
         };
 
