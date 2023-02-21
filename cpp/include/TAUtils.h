@@ -9,7 +9,7 @@
 #include <sstream>
 #include <cstring>
 
-#define ErrorLog(errorMsg) cerr << "ERROR: 【" << __FILE__ << " -> line number: " << __LINE__ << " -> function name: " << __FUNCTION__ << "】【error message: " << errorMsg << "】" << endl;
+#define ErrorLog(errorMsg) cerr << "ERROR: [" << __FILE__ << " -> line number: " << __LINE__ << " -> function name: " << __FUNCTION__ << "][error message: " << errorMsg << "" << "]" << endl;
 
 const std::string kPathSeparator =
 #if defined _WIN32 || defined __CYGWIN__
@@ -22,7 +22,7 @@ const std::string kPathSeparator =
 namespace TaSDK {
     using namespace std;
 
-    const string LIB_VERSION = "1.2.3";
+    const string LIB_VERSION = "1.2.4";
     const string LIB_NAME = "tga_cpp_sdk";
 
     /*!

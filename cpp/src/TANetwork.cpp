@@ -31,7 +31,7 @@ namespace TaSDK {
 
     }
 
-    int64_t TANetwork::post(const string &url, const string &appid, string &data, int32_t dataSize, string &strResponse)
+    int64_t TANetwork::post(const string& url, const string& appid, string& data, int32_t dataSize, string& strResponse)
     {
         CURL *curl;
         CURLcode res;

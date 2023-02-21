@@ -2,6 +2,7 @@
 #include "TAUtils.h"
 
 #if defined(_WIN32)
+#include <io.h>
 #include <windows.h>
 #include <direct.h>
 #include <iostream>
@@ -22,15 +23,18 @@ namespace TaSDK {
 
     LoggerConsumer::LoggerConsumer(const Config &config) {
         if (config.logDirectory.size() <= 0) {
-            ErrorLog("The specified directory path logDirectory cannot be empty！");
+            ErrorLog("The specified directory path logDirectory cannot be empty!");
             return;
         }
         fileName = config.logDirectory;
 
-        if (access(fileName.c_str(), F_OK) == -1) {
+        int32_t flag = -1;
+       
 #ifdef WIN32
+        if (_access_s(fileName.c_str(), 0) == -1) {
             int32_t flag = mkdir(fileName.c_str());
 #else
+        if (access(fileName.c_str(), 0) == -1) {
             int32_t flag = mkdir(fileName.c_str(), S_IRWXU);
 #endif
             if (flag == 0) {
