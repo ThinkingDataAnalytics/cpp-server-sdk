@@ -134,7 +134,7 @@ namespace TaSDK {
 
     void ThinkingDataAnalytics::add(const string &accountId, const string &distinctId, const string &eventType, const string &eventName, const string &eventId, TAJSONObject properties) {
         if (accountId.size() <= 0 && distinctId.size() <= 0) {
-            throw std::invalid_argument("accountId or distinctId must be provided.");
+            // throw std::invalid_argument("accountId or distinctId must be provided.");
         }
 
         TAJSONObject propertiesDic;

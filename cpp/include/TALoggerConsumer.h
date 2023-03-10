@@ -16,6 +16,8 @@ namespace TaSDK {
         };
 
     private:
+        string fileNamePrefix;
+        string fileName_origin;                    // file name
         string fileName;                    // file name
         int32_t bufferSize;                     // When there is data to upload, when the number of data cache reaches the bufferSize, upload the data immediately
         int32_t fileSize;                       // single file size
@@ -35,12 +37,14 @@ namespace TaSDK {
             int32_t fileSize;                               // The size threshold of a single file, the default value is 0 means infinity, the unit is M
 
         public:
-            // When there is data to upload, when the number of data cache reaches the bufferSize, upload the data immediately, default 20
-            Config(const string &logDir, const int32_t bufferSize = 20);
+            // When there is data to upload, when the number of data cache reaches the bufferSize, upload the data immediately, default 20. fileSize default 2M
+            Config(const string &logDir, const int32_t bufferSize = 20, const int32_t fileSize = 10, const RotateMode rotateMode = LoggerConsumer::RotateMode::DAILY);
         };
 
     public:
         LoggerConsumer(const Config &config);
+
+        void updateFilePath();
 
         void add(const string &record);
 

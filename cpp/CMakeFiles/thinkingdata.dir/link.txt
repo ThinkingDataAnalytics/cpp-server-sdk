@@ -1,0 +1,2 @@
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ar qc libthinkingdata.a CMakeFiles/thinkingdata.dir/src/ThinkingAnalyticsAPI.cpp.o CMakeFiles/thinkingdata.dir/src/TAUtils.cpp.o CMakeFiles/thinkingdata.dir/src/TALoggerConsumer.cpp.o
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ranlib libthinkingdata.a

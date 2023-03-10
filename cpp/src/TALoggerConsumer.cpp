@@ -14,22 +14,28 @@
 #include <fstream>
 #endif
 
-
+#include <pthread.h>
+#include <mutex>
 
 
 namespace TaSDK {
 
     using namespace std;
 
+    pthread_mutex_t flush_mutex_t;
+
     LoggerConsumer::LoggerConsumer(const Config &config) {
         if (config.logDirectory.size() <= 0) {
             ErrorLog("The specified directory path logDirectory cannot be empty!");
             return;
         }
+        fileName_origin = config.logDirectory;
         fileName = config.logDirectory;
+        fileNamePrefix = config.fileNamePrefix;
+        rotateMode = config.rotateMode;
 
         int32_t flag = -1;
-       
+
 #ifdef WIN32
         if (_access_s(fileName.c_str(), 0) == -1) {
             int32_t flag = mkdir(fileName.c_str());
@@ -45,39 +51,28 @@ namespace TaSDK {
             }
         }
 
-        if (config.fileNamePrefix.size()) {
-            fileName = fileName + kPathSeparator + config.fileNamePrefix + "log.";
-        } else {
-            fileName = fileName + kPathSeparator + "log.";
-        }
-
-        time_t now = time(0);
-        tm *ltm = localtime(&now);
-        fileName += to_string((1900 + ltm->tm_year));
-        fileName += "-";
-        fileName += to_string((1 + ltm->tm_mon));
-        fileName += "-";
-        fileName += to_string(ltm->tm_mday);
-
-        if (config.rotateMode == HOURLY) {
-            fileName += "-";
-            fileName += to_string(ltm->tm_hour);
-        }
+        updateFilePath();
 
         rotateMode = config.rotateMode;
         bufferSize = config.bufferSize;
         fileSize = config.fileSize;
         messageCount = 0;
 
+        pthread_mutex_init(&flush_mutex_t, 0);
+
         cout << "LoggerConsumer Initialization successful" << endl;
     }
 
-    LoggerConsumer::Config::Config(const string &logDir, const int bufferSize) : logDirectory(logDir),
-                                                                              bufferSize(bufferSize) {
+   LoggerConsumer::Config::Config(const string &logDir, const int bufferSize, const int fileSize, const RotateMode rotateMode) : logDirectory(logDir),
+                                                                                                     bufferSize(bufferSize), fileSize(fileSize), rotateMode(rotateMode) {
         cout << "Config Initialization successful" << endl;
     }
 
     void LoggerConsumer::add(const string &record) {
+
+        int32_t _messageCount = 0;
+        int32_t _bufferSize = 0;
+        pthread_mutex_lock(&flush_mutex_t);
 
         if (record.size() <= 0) {
             ErrorLog("Failed to add data, data is empty.");
@@ -86,14 +81,19 @@ namespace TaSDK {
         messageBuffer += "\n";
         messageCount++;
 
+        _messageCount = messageCount;
+        _bufferSize = bufferSize;
+        pthread_mutex_unlock(&flush_mutex_t);
+
         // When there is data to upload, when the number of data cache reaches the bufferSize, upload the data immediately
-        if (messageCount >= bufferSize) {
+        if (_messageCount >= _bufferSize) {
             flush();
         }
     }
 
     string LoggerConsumer::getFileName() {
         // TA_LOCK(&ta_mutex);
+        updateFilePath();
         int32_t count = 0;
         string fullFileName = fileName + "_" + to_string(count);
         if (fileSize > 0) {
@@ -121,8 +121,11 @@ namespace TaSDK {
 
     void LoggerConsumer::flush() {
 
-        // TA_LOCK(&ta_mutex);
-        if (messageBuffer.size() <= 0) return;
+        pthread_mutex_lock(&flush_mutex_t);
+        if (messageBuffer.size() <= 0) {
+            pthread_mutex_unlock(&flush_mutex_t);
+            return;
+        }
 
         string fileNamePath = getFileName();
 
@@ -133,21 +136,41 @@ namespace TaSDK {
         }
 
         if (outFile) {
-            if (!(outFile << messageBuffer).bad()) {
-                messageBuffer = "";
-            } else {
-                ErrorLog("Data write fail.");
-            }
+            outFile.write(messageBuffer.c_str(), strlen(messageBuffer.c_str()));
+            outFile.flush();
         } else {
             ErrorLog("File open fail.");
         }
+        messageBuffer = "";
         messageCount = 0;
-        // TA_UNLOCK(&ta_mutex);
-
+        
+        pthread_mutex_unlock(&flush_mutex_t);
     }
 
     void LoggerConsumer::close() {
         flush();
+        outFile.flush();
         outFile.close();
+    }
+
+    void LoggerConsumer::updateFilePath() {
+        if (fileNamePrefix.size()) {
+            fileName = fileName_origin + kPathSeparator + fileNamePrefix + "log.";
+        } else {
+            fileName = fileName_origin + kPathSeparator + "log.";
+        }
+
+        time_t now = time(0);
+        tm *ltm = localtime(&now);
+        fileName += to_string((1900 + ltm->tm_year));
+        fileName += "-";
+        fileName += to_string((1 + ltm->tm_mon));
+        fileName += "-";
+        fileName += to_string(ltm->tm_mday);
+
+        if (rotateMode == HOURLY) {
+            fileName += "-";
+            fileName += to_string(ltm->tm_hour);
+        }
     }
 }
