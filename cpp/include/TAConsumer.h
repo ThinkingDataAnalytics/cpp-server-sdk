@@ -8,6 +8,8 @@ namespace TaSDK {
     class TAConsumer {
 
     public:
+        virtual ~TAConsumer() = 0;
+
         virtual void add(const std::string &record) = 0;
 
         virtual void flush() = 0;

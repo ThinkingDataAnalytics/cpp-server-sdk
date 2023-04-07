@@ -7,9 +7,7 @@
 #include <ctime>
 #include <sys/timeb.h>
 
-#include <pthread.h>
 #include <mutex>
-#include <zlib.h>
 #include "TAConsumer.h"
 #include "TAUtils.h"
 
@@ -18,18 +16,16 @@ using namespace std;
 namespace TaSDK {
 
     class ThinkingDataAnalytics {
+        
 
-        TAConsumer &consumer;
-
-        bool enableUUID;
-
-        PropertiesNode supperProperties;
-
-        pthread_mutex_t mutex_t;
+    private:
+        TAConsumer& m_consumer;
+        bool m_enableUUID;
+        PropertiesNode m_supperProperties;
+        mutex m_mutex;
 
     public:
         ThinkingDataAnalytics(TAConsumer &consumer);
-
         ThinkingDataAnalytics(TAConsumer &consumer, bool enableUUID);
 
         /*!
@@ -39,8 +35,7 @@ namespace TaSDK {
           * @param eventName event name
           * @param properties event properties
           */
-        void track(const string &accountId, const string &distinctId, const string &eventName,
-                   const PropertiesNode &properties);
+        void track(const string &accountId, const string &distinctId, const string &eventName, const PropertiesNode &properties);
 
         /*!
            * first event
@@ -49,8 +44,7 @@ namespace TaSDK {
            * @param eventName event name
            * @param properties event properties
            */
-        void track_first(const string &accountId, const string &distinctId, const string &eventName,
-                         const PropertiesNode &properties);
+        void track_first(const string &accountId, const string &distinctId, const string &eventName, const PropertiesNode &properties);
 
         /*!
           * Updatable events
@@ -60,9 +54,7 @@ namespace TaSDK {
           * @param eventId event ID
           * @param properties event properties
           */
-        void
-        track_update(const string &accountId, const string &distinctId, const string &eventName, const string &eventId,
-                     const PropertiesNode &properties);
+        void track_update(const string &accountId, const string &distinctId, const string &eventName, const string &eventId, const PropertiesNode &properties);
 
 
         /*!
@@ -73,8 +65,7 @@ namespace TaSDK {
           * @param eventId event ID
           * @param properties event properties
          */
-        void track_overwrite(const string &accountId, const string &distinctId, const string &eventName,
-                             const string &eventId, const PropertiesNode &properties);
+        void track_overwrite(const string &accountId, const string &distinctId, const string &eventName, const string &eventId, const PropertiesNode &properties);
 
         /*!
           * Set the user attribute. If the attribute already exists, it is overwritten; otherwise, the newly created user attribute
@@ -153,11 +144,9 @@ namespace TaSDK {
         void clearSuperProperties();
 
     private:
-        void add(const string &accountId, const string &distinctId, const string &eventType, const string &eventName,
-                 const string &eventId, TAJSONObject properties);
+        void add(const string &accountId, const string &distinctId, const string &eventType, const string &eventName, const string &eventId, TAJSONObject properties);
 
-        bool
-        transferWithStringMap(const string &key, TAJSONObject &sourceProperties, TAJSONObject &distinationProperties);
+        bool transferWithStringMap(const string &key, TAJSONObject &sourceProperties, TAJSONObject &distinationProperties);
     };
 
 

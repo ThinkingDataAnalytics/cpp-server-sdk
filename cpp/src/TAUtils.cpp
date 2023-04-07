@@ -1,7 +1,6 @@
 
 #include "TAUtils.h"
 
-#include <zlib.h>
 #include <functional>
 
 #include <iostream>
@@ -9,44 +8,33 @@
 #include <ctime>
 #include <cstdlib>
 
+#include <random>
+#include <iomanip>
+
 namespace TaSDK {
 
     string getUUID() {
-
-    string uuid;
-    uuid.resize(36);
-    char characterSet[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-
-    // 8 characters
-    for(int i=0;i<8;i++)
-        uuid[i] = characterSet[rand() % 36];
-
-    // 4 characters
-    for(int i=9;i<13;i++)
-        uuid[i] = characterSet[rand() % 36];
-
-    // 4 characters
-    for(int i=14;i<18;i++)
-        uuid[i] = characterSet[rand() % 36];
-
-    // 4 characters
-    for(int i=19;i<23;i++)
-        uuid[i] = characterSet[rand() % 36];
-
-    // 12 characters
-    for(int i=24;i<36;i++)
-        uuid[i] = characterSet[rand() % 36];
-
-    // Separators
-    uuid[8] = '-';
-    uuid[13] = '-';
-    uuid[18] = '-';
-    uuid[23] = '-';
-
-    return uuid;
-
+        static std::random_device rd;
+        static std::uniform_int_distribution<uint64_t> dist(0ULL, 0xFFFFFFFFFFFFFFFFULL);
+        uint64_t ab = dist(rd);
+        uint64_t cd = dist(rd);
+        uint32_t a, b, c, d;
+        std::stringstream ss;
+        ab = (ab & 0xFFFFFFFFFFFF0FFFULL) | 0x0000000000004000ULL;
+        cd = (cd & 0x3FFFFFFFFFFFFFFFULL) | 0x8000000000000000ULL;
+        a = (ab >> 32U);
+        b = (ab & 0xFFFFFFFFU);
+        c = (cd >> 32U);
+        d = (cd & 0xFFFFFFFFU);
+        ss << std::hex << std::nouppercase << std::setfill('0');
+        ss << std::setw(8) << (a) << '-';
+        ss << std::setw(4) << (b >> 16U) << '-';
+        ss << std::setw(4) << (b & 0xFFFFU) << '-';
+        ss << std::setw(4) << (c >> 16U) << '-';
+        ss << std::setw(4) << (c & 0xFFFFU);
+        ss << std::setw(8) << d;
+        return ss.str();
     }
-
 
     bool assertProperties(const string &key) {
 //        regex keyPattern("^(#[a-z][a-z0-9_]{0,49})|([a-z][a-z0-9_]{0,50})$", regex::icase|regex::ECMAScript);
@@ -200,9 +188,7 @@ namespace TaSDK {
         *buffer += '{';
         bool first = true;
 
-        for (std::map<string, ValueNode>::const_iterator
-                     iterator = node.properties_map_.begin();
-             iterator != node.properties_map_.end(); ++iterator) {
+        for (std::map<string, ValueNode>::const_iterator iterator = node.properties_map_.begin(); iterator != node.properties_map_.end(); ++iterator) {
             if (first) {
                 first = false;
             } else {

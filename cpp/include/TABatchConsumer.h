@@ -7,6 +7,7 @@
 #include "TAConsumer.h"
 #include <vector>
 #include "TANetwork.h"
+#include <mutex>
 
 namespace TaSDK {
 
@@ -15,7 +16,7 @@ namespace TaSDK {
     class TABatchConsumer : public TAConsumer {
     public:
     
-        TABatchConsumer(string appid, string serverUrl, int32_t batchSize = 20, bool debug = false);
+        TABatchConsumer(string appid, string serverUrl, int32_t batchSize = 20, bool debug = false, string certPath = "");
         ~TABatchConsumer();
         void add(const string &record);
         void flush();
@@ -28,6 +29,9 @@ namespace TaSDK {
         int32_t m_batchSize;
         vector<string> m_dataList;
         TANetwork m_network;
+        mutex m_mutex;
+        string m_certPath;
+        void sendData();
     };
 };
 

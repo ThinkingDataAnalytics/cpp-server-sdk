@@ -1,20 +1,18 @@
 #include "ThinkingAnalyticsAPI.h"
 
+#if defined(_WIN32)
 
-#ifdef WIN32 //Windows
+#include <windows.h>
+#include <iostream>
+#include <fstream>
 
-#else  // Linux
-//#src <sys/io.h>
+#else
+
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <dirent.h>
-#endif
 
-#if defined(_WIN32)
-#include <windows.h>
-#include <iostream>
-#include <fstream>
 #endif
 
 #include <cstring>
@@ -29,79 +27,74 @@ const static string TA_USER_UNSET                 = "user_unset";
 const static string TA_USER_DEL                   = "user_del";
 const static string TA_USER_ADD                   = "user_add";
 const static string TA_USER_APPEND                = "user_append";
-const static string TA_USER_UNIQ_APPEND            = "user_uniq_append";
+const static string TA_USER_UNIQ_APPEND           = "user_uniq_append";
 
 
 namespace TaSDK {
 
-    ThinkingDataAnalytics::ThinkingDataAnalytics(TAConsumer &consumer): consumer(consumer) {
-        enableUUID = false;
-        pthread_mutex_init(&mutex_t, 0);
-        cout << " 0 - ThinkingDataAnalytics Initialization successful" << endl;
+    ThinkingDataAnalytics::ThinkingDataAnalytics(TAConsumer &consumer): ThinkingDataAnalytics(consumer, false) {
+
     }
 
-    ThinkingDataAnalytics::ThinkingDataAnalytics(TAConsumer &consumer, bool enableUUID): consumer(consumer), enableUUID(enableUUID) {
-        pthread_mutex_init(&mutex_t, 0);
-        cout << " 1 - ThinkingDataAnalytics Initialization successful" << endl;
+    ThinkingDataAnalytics::ThinkingDataAnalytics(TAConsumer& consumer, bool enableUUID) : m_consumer(consumer), m_enableUUID(enableUUID) {
+        cout << "[ThinkingEngine] SDK Initialization successful" << endl;
     }
 
-    void ThinkingDataAnalytics::track(const string &accountId, const string &distinctId, const string &eventName, const PropertiesNode &properties) {
+    void ThinkingDataAnalytics::track(const string& accountId, const string& distinctId, const string& eventName, const PropertiesNode& properties) {
         TAJSONObject allProperties;
-        pthread_mutex_lock(&mutex_t);
-        allProperties.MergeFrom(supperProperties);
-        pthread_mutex_unlock(&mutex_t);
+        m_mutex.lock();
+        allProperties.MergeFrom(m_supperProperties);
+        m_mutex.unlock();
         allProperties.MergeFrom(properties);
         add(accountId, distinctId, TA_TRACK, eventName, "", allProperties);
     }
 
-    void ThinkingDataAnalytics::track_first(const string &accountId, const string &distinctId, const string &eventName, const PropertiesNode &properties) {
-
+    void ThinkingDataAnalytics::track_first(const string& accountId, const string& distinctId, const string& eventName, const PropertiesNode& properties) {
         if (((TAJSONObject)properties).ContainsWithKey("#first_check_id")) {
             track(accountId, distinctId, eventName, properties);
-        } else {
+        }
+        else {
             ErrorLog("#first_check_id key must set.");
         }
     }
 
     void ThinkingDataAnalytics::flush() {
-        pthread_mutex_lock(&mutex_t);
-        consumer.flush();
-        pthread_mutex_unlock(&mutex_t);
+        m_consumer.flush();
     }
 
-    void ThinkingDataAnalytics::track_update(const string &accountId, const string &distinctId, const string &eventName, const string &eventId, const PropertiesNode &properties) {
+    void ThinkingDataAnalytics::track_update(const string& accountId, const string& distinctId, const string& eventName, const string& eventId, const PropertiesNode& properties) {
 
         TAJSONObject allProperties;
-        pthread_mutex_lock(&mutex_t);
-        allProperties.MergeFrom(supperProperties);
-        pthread_mutex_unlock(&mutex_t);
+        m_mutex.lock();
+        allProperties.MergeFrom(m_supperProperties);
+        m_mutex.unlock();
         allProperties.MergeFrom(properties);
         add(accountId, distinctId, TA_TRACK_UPDATE, eventName, eventId, allProperties);
     }
 
-    void ThinkingDataAnalytics::track_overwrite(const string &accountId, const string &distinctId, const string &eventName, const string &eventId, const PropertiesNode &properties) {
+    void ThinkingDataAnalytics::track_overwrite(const string& accountId, const string& distinctId, const string& eventName, const string& eventId, const PropertiesNode& properties) {
         TAJSONObject allProperties;
-        pthread_mutex_lock(&mutex_t);
-        allProperties.MergeFrom(supperProperties);
-        pthread_mutex_unlock(&mutex_t);
+        m_mutex.lock();
+        allProperties.MergeFrom(m_supperProperties);
+        m_mutex.unlock();
         allProperties.MergeFrom(properties);
         add(accountId, distinctId, TA_TRACK_OVERWRITE, eventName, eventId, allProperties);
     }
 
-    void ThinkingDataAnalytics::user_set(const string &accountId, const string &distinctId, const PropertiesNode &properties) {
+    void ThinkingDataAnalytics::user_set(const string& accountId, const string& distinctId, const PropertiesNode& properties) {
         add(accountId, distinctId, TA_USER_SET, "", "", properties);
     }
 
-    void ThinkingDataAnalytics::user_setOnce(const string &accountId, const string &distinctId, const PropertiesNode &properties) {
+    void ThinkingDataAnalytics::user_setOnce(const string& accountId, const string& distinctId, const PropertiesNode& properties) {
         add(accountId, distinctId, TA_USER_SET_ONCE, "", "", properties);
     }
 
-    void ThinkingDataAnalytics::user_add(const string &accountId, const string &distinctId, const PropertiesNode &properties) {
+    void ThinkingDataAnalytics::user_add(const string& accountId, const string& distinctId, const PropertiesNode& properties) {
         for (std::map<string, TAJSONObject::ValueNode>::const_iterator
-                     iterator = properties.properties_map_.begin();
-             iterator != properties.properties_map_.end(); ++iterator) {
+            iterator = properties.properties_map_.begin();
+            iterator != properties.properties_map_.end(); ++iterator) {
             TAJSONObject::ValueNode valueN = iterator->second;
-            if (valueN.node_type_ == PropertiesNode::NUMBER || valueN.node_type_ == PropertiesNode::INT) { }
+            if (valueN.node_type_ == PropertiesNode::NUMBER || valueN.node_type_ == PropertiesNode::INT) {}
             else {
                 ErrorLog("Only Number or int is allowed for user_add. Invalid property: " + iterator->first);
             }
@@ -109,39 +102,37 @@ namespace TaSDK {
         add(accountId, distinctId, TA_USER_ADD, "", "", properties);
     }
 
-    void ThinkingDataAnalytics::user_append(const string &accountId, const string &distinctId, const PropertiesNode &properties) {
+    void ThinkingDataAnalytics::user_append(const string& accountId, const string& distinctId, const PropertiesNode& properties) {
         add(accountId, distinctId, TA_USER_APPEND, "", "", properties);
     }
 
-    void ThinkingDataAnalytics::user_uniqAppend(const string &accountId, const string &distinctId, const PropertiesNode &properties) {
+    void ThinkingDataAnalytics::user_uniqAppend(const string& accountId, const string& distinctId, const PropertiesNode& properties) {
         add(accountId, distinctId, TA_USER_UNIQ_APPEND, "", "", properties);
     }
 
-    void ThinkingDataAnalytics::user_unset(const string &accountId, const string &distinctId, const PropertiesNode &properties) {
+    void ThinkingDataAnalytics::user_unset(const string& accountId, const string& distinctId, const PropertiesNode& properties) {
         add(accountId, distinctId, TA_USER_UNSET, "", "", properties);
     }
 
-    void ThinkingDataAnalytics::user_del(const string &accountId, const string &distinctId) {
+    void ThinkingDataAnalytics::user_del(const string& accountId, const string& distinctId) {
         PropertiesNode perperties;
         add(accountId, distinctId, TA_USER_DEL, "", "", perperties);
     }
 
     void ThinkingDataAnalytics::close() {
-        pthread_mutex_lock(&mutex_t);
-        consumer.close();
-        pthread_mutex_unlock(&mutex_t);
+        m_consumer.close();
     }
 
-    void ThinkingDataAnalytics::add(const string &accountId, const string &distinctId, const string &eventType, const string &eventName, const string &eventId, TAJSONObject properties) {
+    void ThinkingDataAnalytics::add(const string& accountId, const string& distinctId, const string& eventType, const string& eventName, const string& eventId, TAJSONObject properties) {
         if (accountId.size() <= 0 && distinctId.size() <= 0) {
-            // throw std::invalid_argument("accountId or distinctId must be provided.");
+            ErrorLog("accountId or distinctId must be provided.");
         }
 
         TAJSONObject propertiesDic;
         TAJSONObject finalPropertiesDic;
 
         bool transferUUIDFlag = transferWithStringMap("#uuid", properties, finalPropertiesDic);
-        if (!transferUUIDFlag && enableUUID) {
+        if (!transferUUIDFlag && m_enableUUID) {
             finalPropertiesDic.SetString("#uuid", getUUID());
         }
 
@@ -171,14 +162,16 @@ namespace TaSDK {
         if (eventType == TA_TRACK || eventType == TA_TRACK_UPDATE || eventType == TA_TRACK_OVERWRITE) {
             if (eventName.size()) {
                 finalPropertiesDic.SetString("#event_name", eventName);
-            } else {
+            }
+            else {
                 ErrorLog("The event name must be provided.");
             }
 
             if (eventType == TA_TRACK_UPDATE || eventType == TA_TRACK_OVERWRITE) {
                 if (eventId.size()) {
                     finalPropertiesDic.SetString("#event_id", eventId);
-                } else {
+                }
+                else {
                     ErrorLog("The event id must be provided.");
                 }
             }
@@ -193,12 +186,10 @@ namespace TaSDK {
 
         string record = finalPropertiesDic.ToJson(finalPropertiesDic);
 
-        pthread_mutex_lock(&mutex_t);
-        consumer.add(record);
-        pthread_mutex_unlock(&mutex_t);
+        m_consumer.add(record);
     }
 
-    bool ThinkingDataAnalytics::transferWithStringMap(const string &key, TAJSONObject &sourceProperties, TAJSONObject &distinationProperties) {
+    bool ThinkingDataAnalytics::transferWithStringMap(const string& key, TAJSONObject& sourceProperties, TAJSONObject& distinationProperties) {
         if (sourceProperties.ContainsWithKey(key)) {
             PropertiesNode::ValueNode vauleNode;
             sourceProperties.FindNode(key, vauleNode);
@@ -210,24 +201,25 @@ namespace TaSDK {
                 distinationProperties.SetString(key, valueStr);
                 sourceProperties.RemoveNode(key);
                 return true;
-            } else {
+            }
+            else {
                 return false;
             }
-        } else {
+        }
+        else {
             return false;
         }
     }
 
-    void ThinkingDataAnalytics::setSupperProperties(const PropertiesNode &supperProperties) {
-        pthread_mutex_lock(&mutex_t);
-        ThinkingDataAnalytics::supperProperties = supperProperties;
-        pthread_mutex_unlock(&mutex_t);
+    void ThinkingDataAnalytics::setSupperProperties(const PropertiesNode& supperProperties) {
+        m_mutex.lock();
+        m_supperProperties.MergeFrom(supperProperties);
+        m_mutex.unlock();
     }
 
     void ThinkingDataAnalytics::clearSuperProperties() {
-         pthread_mutex_lock(&mutex_t);
-         supperProperties.Clear();
-         pthread_mutex_unlock(&mutex_t);
+        m_mutex.lock();
+        m_supperProperties.Clear();
+        m_mutex.unlock();
     }
-
-} // TaSDK
+}

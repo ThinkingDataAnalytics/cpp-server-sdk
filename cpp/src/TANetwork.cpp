@@ -5,6 +5,7 @@
 #include "TANetwork.h"
 #include "TAUtils.h"
 #include <curl/curl.h>
+#include <inttypes.h>
 
 static size_t OnWriteData(void* buffer, size_t size, size_t nmemb, void* lpVoid)
 {
@@ -31,7 +32,7 @@ namespace TaSDK {
 
     }
 
-    int64_t TANetwork::post(const string& url, const string& appid, string& data, int32_t dataSize, string& strResponse)
+    int64_t TANetwork::post(const string& url, const string& appid, string& data, int64_t dataSize, string& strResponse, const string& certPath)
     {
         CURL *curl;
         CURLcode res;
@@ -49,11 +50,21 @@ namespace TaSDK {
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data.c_str());
         curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, data.length());
 
-        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
-        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+        // ssl
+        if (certPath.size())
+        {
+            curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L);
+            curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 2L);
+            curl_easy_setopt(curl, CURLOPT_CAINFO, certPath.data());
+        }
+        else
+        {
+            curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+            curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+        }
 
         {
-            char buffer[64];
+            char buffer[64]{};
 
             header_list = curl_slist_append(header_list, "Content-Type: application/json");
             header_list = curl_slist_append(header_list, "compress: none");
@@ -67,7 +78,7 @@ namespace TaSDK {
             snprintf(buffer, 50, "TA-Integration-Version: %s", LIB_NAME.c_str());
             header_list = curl_slist_append(header_list, buffer);
 
-            snprintf(buffer, 50, "TA-Integration-Count: %d", dataSize);
+            snprintf(buffer, 50, "TA-Integration-Count: %" PRId64, dataSize);
             header_list = curl_slist_append(header_list, buffer);
 
             curl_easy_setopt(curl, CURLOPT_HTTPHEADER, header_list);
@@ -90,13 +101,13 @@ namespace TaSDK {
             curl_easy_cleanup(curl);
             return -1;
         }
-        int64_t responseCode;
+        int64_t responseCode = 0;
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &responseCode);
         curl_easy_cleanup(curl);
         return responseCode;
     }
 
-    int64_t TANetwork::debug_post(const string &url, const string &appid, string &data, int32_t dataSize, string &strResponse, int32_t dryRun)
+    int64_t TANetwork::debug_post(const string &url, const string &appid, string &data, int64_t dataSize, string &strResponse, int32_t dryRun, string deviceId, const string& certPath)
     {
         CURL *curl;
         CURLcode res;
@@ -110,18 +121,34 @@ namespace TaSDK {
             return -1;
         }
 
-        final_encodedata_ = string(curl_easy_escape(curl, data.c_str(), data.length()));
-
-        final_datas_ = "appid=" + appid + "&source=server&" + "dryRun=" + to_string(dryRun) + "&data=" + final_encodedata_;
+        final_datas_ = "appid=" + appid + "&source=server" + "&dryRun=" + to_string(dryRun) + "&data=" + data;
+        if (deviceId.size() > 0)
+        {
+            final_datas_ = final_datas_ + "&deviceId=" + deviceId;
+        }
 
         curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
         curl_easy_setopt(curl, CURLOPT_POST, 1L);
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, final_datas_.c_str());
         curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, final_datas_.length());
 
+        // ssl
+        if (certPath.size())
         {
-            char buffer[64];
+            curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L);
+            curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 2L);
+            curl_easy_setopt(curl, CURLOPT_CAINFO, certPath.data());
+        }
+        else
+        {
+            curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+            curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+        }
+
+        {
+            char buffer[64]{};
             header_list = curl_slist_append(header_list, buffer);
+            header_list = curl_slist_append(header_list, "Content-Type:application/x-www-form-urlencoded");
             curl_easy_setopt(curl, CURLOPT_HTTPHEADER, header_list);
         }
 
@@ -141,7 +168,7 @@ namespace TaSDK {
             return -1;
         }
 
-        int64_t responseCode;
+        int64_t responseCode = 0;
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &responseCode);
         curl_easy_cleanup(curl);
         return responseCode;

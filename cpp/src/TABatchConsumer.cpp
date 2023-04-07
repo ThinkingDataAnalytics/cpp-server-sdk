@@ -5,51 +5,66 @@
 
 namespace TaSDK {
 
-    TABatchConsumer::TABatchConsumer(string appid, string serverUrl, int32_t batchSize, bool debug) {
-        m_appId = appid;
-        m_batchSize = batchSize;
+    TABatchConsumer::TABatchConsumer(string appid, string serverUrl, int32_t batchSize, bool debug, string certPath):
+        m_appId(appid), m_debug(debug), m_batchSize(batchSize), m_certPath(certPath)
+    {
         m_serverUrl = serverUrl+"/sync_server";
         m_network = TANetwork();
-        m_debug = debug;
+
+        cout << "[ThinkingEngine] appid: " << m_appId << " serverUrl: " << m_serverUrl << endl;
+
+        if (m_certPath.size()) {
+            cout << "[ThinkingEngine] cacert path: " << m_certPath << endl;
+        }
     }
 
     TABatchConsumer::~TABatchConsumer(void) {}
 
 
     void TABatchConsumer::add(const std::string &record) {
-        m_dataList.push_back(record);
+        m_mutex.lock();
 
+        m_dataList.emplace_back(record);
         if (m_dataList.size() >= m_batchSize) {
-            flush();
+            sendData();
         }
+
+        m_mutex.unlock();
     }
 
     void TABatchConsumer::flush() {
+        m_mutex.lock();
+        sendData();
+        m_mutex.unlock();
+    }
+
+    void TABatchConsumer::sendData() {
+
         string strResponse;
         string datas = "[";
-        int32_t size = m_dataList.size();
+        size_t size = m_dataList.size();
 
         if (size <= 0) return;
 
-        for (int32_t i=0; i<size; i++) {
+        cout << "[ThinkingEngine] flush data count: " << size << endl;
+
+        for (size_t i = 0; i < size; i++) {
             datas.append(m_dataList[i]);
             datas.append(",");
         }
         datas = datas.substr(0, datas.length() - 1);
         datas.append("]");
 
-        int64_t code = m_network.post(m_serverUrl, m_appId, datas, size, strResponse);
-        if (code == 200) {
-            if (m_debug) {
-                fprintf(stdout, "thinkingdata network success: \n");
-                fprintf(stdout, "appid:%s , serverUrl: %s \n", m_appId.c_str(), m_serverUrl.c_str());
-                fprintf(stdout, "datas: %s \n", datas.c_str());
-            }
-            m_dataList.erase(m_dataList.begin(), m_dataList.begin()+(size));
-        } else {
-            if (m_debug) {
-                fprintf(stderr, "thinkingdata network failed, errorcode: %ld \n error_message: %s\n", code,strResponse.c_str());
-            }
+        if (m_debug) {
+            cout << "[ThinkingEngine] data:" << endl << datas << endl;
+        }
+
+        int64_t code = m_network.post(m_serverUrl, m_appId, datas, datas.size(), strResponse, m_certPath);
+
+        cout << "[ThinkingEngine] code: " << code << " response: " << strResponse << endl;
+
+        if (code == 200) {   
+            m_dataList.erase(m_dataList.begin(), m_dataList.begin() + (size));
         }
     }
 

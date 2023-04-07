@@ -6,6 +6,7 @@
 #define CPP_SERVER_SDK_TADEBUGCONSUMER_H
 #include "TAConsumer.h"
 #include <vector>
+#include <mutex>
 #include "TANetwork.h"
 
 namespace TaSDK {
@@ -14,22 +15,23 @@ namespace TaSDK {
 
     class TADebugConsumer : public TAConsumer {
     public:
-        TADebugConsumer(string appid, string serverUrl);
+        TADebugConsumer(string appid, string serverUrl, string certPath = "", string deviceId = "");
         ~TADebugConsumer();
         void add(const string &record);
         void flush();
         void close();
 
     private:
-        bool m_debug;
         string m_serverUrl;
         string m_appId;
+        string m_deviceId;
         int32_t m_batchSize;
         vector<string> m_dataList;
         TANetwork m_network;
+        mutex m_mutex;
+        string m_certPath;
+        void sendData();
     };
 };
-
-
 
 #endif //CPP_SERVER_SDK_TADEBUGCONSUMER_H
