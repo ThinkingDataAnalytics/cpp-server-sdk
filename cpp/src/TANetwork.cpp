@@ -1,43 +1,37 @@
 //
-// Created by wwango on 2022/10/25.
+// Created by TD on 2022/10/25.
 //
 
 #include "TANetwork.h"
 #include "TAUtils.h"
 #include <curl/curl.h>
-#include <inttypes.h>
+#include <cinttypes>
 
-static size_t OnWriteData(void* buffer, size_t size, size_t nmemb, void* lpVoid)
+static size_t OnWriteData(void* buffer, size_t size, size_t nMember, void* lpVoid)
 {
-    std::string* str = dynamic_cast<std::string*>((std::string *)lpVoid);
-    if( NULL == str || NULL == buffer )
+    auto* str = dynamic_cast<std::string*>((std::string *)lpVoid);
+    if( nullptr == str || nullptr == buffer )
     {
         return -1;
     }
 
     char* pData = (char*)buffer;
-    str->append(pData, size * nmemb);
-    return nmemb;
+    str->append(pData, size * nMember);
+    return nMember;
 }
 
 
 namespace TaSDK {
-    TANetwork::TANetwork(void)
-    {
+    TANetwork::TANetwork(void) = default;
 
-    }
-
-    TANetwork::~TANetwork(void)
-    {
-
-    }
+    TANetwork::~TANetwork(void) = default;
 
     int64_t TANetwork::post(const string& url, const string& appid, string& data, int64_t dataSize, string& strResponse, const string& certPath)
     {
         CURL *curl;
         CURLcode res;
         int32_t timeout_seconds = 10;
-        struct curl_slist *header_list = NULL;
+        struct curl_slist *header_list = nullptr;
 
         curl = curl_easy_init();
         if (!curl) {
@@ -51,7 +45,7 @@ namespace TaSDK {
         curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, data.length());
 
         // ssl
-        if (certPath.size())
+        if (!certPath.empty())
         {
             curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L);
             curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 2L);
@@ -84,11 +78,9 @@ namespace TaSDK {
             curl_easy_setopt(curl, CURLOPT_HTTPHEADER, header_list);
         }
 
-        if (timeout_seconds > 0) {
-            curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeout_seconds);
-            // dont want to get a sig alarm on timeout
-            curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
-        }
+        curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeout_seconds);
+        // dont want to get a sig alarm on timeout
+        curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
 
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, OnWriteData);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&strResponse);
@@ -107,13 +99,15 @@ namespace TaSDK {
         return responseCode;
     }
 
-    int64_t TANetwork::debug_post(const string &url, const string &appid, string &data, int64_t dataSize, string &strResponse, int32_t dryRun, string deviceId, const string& certPath)
+    int64_t
+    TANetwork::debug_post(const string &url, const string &appid, string &data, string &strResponse, int32_t dryRun,
+                          const string &deviceId, const string &certPath)
     {
         CURL *curl;
         CURLcode res;
-        struct curl_slist *header_list = NULL;
-        string final_encodedata_;
-        string final_datas_;
+        struct curl_slist *header_list = nullptr;
+        string final_encode_data_;
+        string final_data_;
 
         curl = curl_easy_init();
         if (!curl) {
@@ -121,19 +115,19 @@ namespace TaSDK {
             return -1;
         }
 
-        final_datas_ = "appid=" + appid + "&source=server" + "&dryRun=" + to_string(dryRun) + "&data=" + data;
-        if (deviceId.size() > 0)
+        final_data_ = "appid=" + appid + "&source=server" + "&dryRun=" + to_string(dryRun) + "&data=" + data;
+        if (!deviceId.empty())
         {
-            final_datas_ = final_datas_ + "&deviceId=" + deviceId;
+            final_data_ = final_data_ + "&deviceId=" + deviceId;
         }
 
         curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
         curl_easy_setopt(curl, CURLOPT_POST, 1L);
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, final_datas_.c_str());
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, final_datas_.length());
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, final_data_.c_str());
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, final_data_.length());
 
         // ssl
-        if (certPath.size())
+        if (!certPath.empty())
         {
             curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L);
             curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 2L);

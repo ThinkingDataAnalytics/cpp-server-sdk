@@ -1,10 +1,24 @@
 cmake_minimum_required(VERSION 3.12)
 project(ThinkingEngine)
-
-message("[ThinkingEngine] current cmake version: ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.${CMAKE_PATCH_VERSION}")
-message("[ThinkingEngine] CMAKE_HOST_SYSTEM: ${CMAKE_HOST_SYSTEM} ")
-
 set(CMAKE_CXX_STANDARD 11)
+
+
+message(STATUS "[ThinkingEngine] current cmake version: ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.${CMAKE_PATCH_VERSION}")
+message(STATUS "[ThinkingEngine] CMAKE_HOST_SYSTEM: ${CMAKE_HOST_SYSTEM} ")
+
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE release CACHE STRING "Build Type" FORCE)
+endif()
+
+message(STATUS "[ThinkingEngine] Build type:${CMAKE_BUILD_TYPE}")
+
+message(STATUS "[ThinkingEngine] Debug configuration:${CMAKE_CXX_FLAGS_DEBUG}")
+
+message(STATUS "[ThinkingEngine] release configuration:${CMAKE_CXX_FLAGS_RELEASE}")
+
+message(STATUS "[ThinkingEngine] release configuration with debug info:${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
+
+message(STATUS "[ThinkingEngine] minimal release configuration:${CMAKE_CXX_FLAGS_MINSIZEREL}")
 
 include_directories(include)
 

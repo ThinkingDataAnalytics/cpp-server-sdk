@@ -1,9 +1,9 @@
 //
-// Created by wwango on 2022/10/25.
+// Created by TD on 2022/10/25.
 //
 
-#ifndef CPP_SERVER_SDK_TADEBUGCONSUMER_H
-#define CPP_SERVER_SDK_TADEBUGCONSUMER_H
+#ifndef CPP_SERVER_SDK_TD_DEBUG_CONSUMER_H
+#define CPP_SERVER_SDK_TD_DEBUG_CONSUMER_H
 #include "TAConsumer.h"
 #include <vector>
 #include <mutex>
@@ -15,11 +15,11 @@ namespace TaSDK {
 
     class TADebugConsumer : public TAConsumer {
     public:
-        TADebugConsumer(string appid, string serverUrl, string certPath = "", string deviceId = "");
-        ~TADebugConsumer();
-        void add(const string &record);
-        void flush();
-        void close();
+        TADebugConsumer(string appid, const string& serverUrl, string certPath = "", string deviceId = "");
+        ~TADebugConsumer() override;
+        void add(const string &record) override;
+        void flush() override;
+        void close() override;
 
     private:
         string m_serverUrl;
@@ -32,6 +32,6 @@ namespace TaSDK {
         string m_certPath;
         void sendData();
     };
-};
+}
 
-#endif //CPP_SERVER_SDK_TADEBUGCONSUMER_H
+#endif //CPP_SERVER_SDK_TD_DEBUG_CONSUMER_H

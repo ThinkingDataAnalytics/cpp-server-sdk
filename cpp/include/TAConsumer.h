@@ -1,6 +1,6 @@
 
-#ifndef CPP_TACONSUMER_H
-#define CPP_TACONSUMER_H
+#ifndef CPP_TD_CONSUMER_H
+#define CPP_TD_CONSUMER_H
 
 #include <ostream>
 

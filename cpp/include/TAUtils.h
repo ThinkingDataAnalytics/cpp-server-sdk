@@ -1,6 +1,6 @@
 
-#ifndef CPP_TAUTILS_H
-#define CPP_TAUTILS_H
+#ifndef CPP_TD_UTILS_H
+#define CPP_TD_UTILS_H
 
 #include <iostream>
 #include <map>
@@ -8,6 +8,7 @@
 #include <regex>
 #include <sstream>
 #include <cstring>
+#include "TAJsonParse.h"
 
 #define ErrorLog(errorMsg) cerr << "ERROR: [" << __FILE__ << " -> line number: " << __LINE__ << " -> function name: " << __FUNCTION__ << "][error message: " << errorMsg << "" << "]" << endl;
 
@@ -22,7 +23,7 @@ const std::string kPathSeparator =
 namespace TaSDK {
     using namespace std;
 
-    const string LIB_VERSION = "1.2.7";
+    const string LIB_VERSION = "1.2.8-beta.1";
     const string LIB_NAME = "tga_cpp_sdk";
 
     /*!
@@ -31,9 +32,11 @@ namespace TaSDK {
      */
     string getUUID();
 
+    string formatDateTime(const time_t& seconds, int32_t milliseconds);
+
     /*!
     * TAJSONObject class
-     * Mainly used to process the map attribute properties_map_ in the TAJSONObject class
+     * Mainly used to process the map attribute m_properties in the TAJSONObject class
      */
     class TAJSONObject {
     public:
@@ -68,15 +71,15 @@ namespace TaSDK {
 
         class ValueNode;
 
-        std::map<string, ValueNode> properties_map_;
+        std::map<string, shared_ptr<ValueNode>> m_properties;
 
-        static void DumpNode(const TAJSONObject &node, string *buffer);
+        static void DumpNode(const TAJSONObject& node, rapidjson::Writer<rapidjson::StringBuffer> &writer);
 
         void MergeFrom(const TAJSONObject &another_node);
 
         bool ContainsWithKey(const string &key);
 
-        void FindNode(const string &key, ValueNode &valueNode);
+        shared_ptr<ValueNode> FindNode(const string& key);
 
         bool RemoveNode(const string &key);
 
@@ -104,7 +107,7 @@ namespace TaSDK {
 
         explicit ValueNode(int64_t value);
 
-        explicit ValueNode(const string &value);
+        explicit ValueNode(string value);
 
         explicit ValueNode(bool value);
 
@@ -116,24 +119,13 @@ namespace TaSDK {
 
         ValueNode(time_t seconds, int32_t milliseconds);
 
-        static void ToStr(const ValueNode &node, string *buffer);
-
-    private:
-        static void DumpString(const string &value, string *buffer);
-
-        static void DumpList(const std::vector<string> &value, string *buffer);
-
-        static void DumpList(const std::vector<TAJSONObject> &value, string *buffer);
-
-        static void DumpDateTime(const time_t &seconds, int32_t milliseconds,
-                                 string *buffer);
-
-        static void DumpNumber(double value, string *buffer);
-
-        static void DumpNumber(int64_t value, string *buffer);
+        TAJSONObject object_data_;
+        string m_data_string;
+        std::vector<string> list_data_;
+        std::vector<TAJSONObject> list_obj_;
 
         union UnionValue {
-            double number_value;
+            double number_value{};
             bool bool_value;
             struct {
                 std::time_t seconds;
@@ -143,15 +135,10 @@ namespace TaSDK {
 
             UnionValue() { memset(this, 0, sizeof(UnionValue)); }
         } value_;
-
-        string string_data_;
-        std::vector<string> list_data_;
-        std::vector<TAJSONObject> list_obj_;
-        TAJSONObject object_data_;
     };
 
     class PropertiesNode : public TAJSONObject {};
 
 } // TaSDK
 
-#endif //CPP_TAUTILS_H
+#endif //CPP_TD_UTILS_H

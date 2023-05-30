@@ -1,27 +1,28 @@
 //
-// Created by wwango on 2022/10/25.
+// Created by TD on 2022/10/25.
 //
 
 #include "TADebugConsumer.h"
 
+#include <utility>
+
 namespace TaSDK {
 
-    TADebugConsumer::TADebugConsumer(string appid, string serverUrl, string certPath, string deviceId): m_appId(appid), m_deviceId(deviceId), m_certPath(certPath) {
+    TADebugConsumer::TADebugConsumer(string appid, const string& serverUrl, string certPath, string deviceId): m_appId(std::move(appid)), m_deviceId(std::move(deviceId)), m_certPath(std::move(certPath)) {
         this->m_serverUrl = serverUrl+"/data_debug";
         m_batchSize = 1;
-        m_network = TANetwork();
 
         cout << "[ThinkingEngine] appid: " << m_appId << " serverUrl: " << m_serverUrl << endl;
 
-        if (m_deviceId.size()) {
+        if (!m_deviceId.empty()) {
             cout << "[ThinkingEngine] debug deviceId: " << m_deviceId << endl;
         }
-        if (m_certPath.size()) {
-            cout << "[ThinkingEngine] cacert path: " << m_certPath << endl;
+        if (!m_certPath.empty()) {
+            cout << "[ThinkingEngine] CA cert path: " << m_certPath << endl;
         }
     }
 
-    TADebugConsumer::~TADebugConsumer(void) {}
+    TADebugConsumer::~TADebugConsumer(void) = default;
 
     void TADebugConsumer::add(const std::string &record) {
         m_mutex.lock();
@@ -46,20 +47,20 @@ namespace TaSDK {
 
     void TADebugConsumer::sendData() {
         string strResponse;
-        string datas = "";
+        string data;
         size_t size = m_dataList.size();
         if (size <= 0) return;
         for (int32_t i = 0; i < size; i++) {
-            datas.append(m_dataList[i]);
-            datas.append(",");
+            data.append(m_dataList[i]);
+            data.append(",");
         }
-        datas = datas.substr(0, datas.length() - 1);
+        data = data.substr(0, data.length() - 1);
         
         int32_t dryRun = 1;
-        int64_t code = m_network.debug_post(m_serverUrl, m_appId, datas, datas.size(), strResponse, dryRun, m_deviceId, m_certPath);
+        int64_t code = TaSDK::TANetwork::debug_post(m_serverUrl, m_appId, data, strResponse, dryRun, m_deviceId, m_certPath);
 
         cout << "[ThinkingEngine] code: " << code << " response: " << strResponse << endl;
 
-        m_dataList.erase(m_dataList.begin(), m_dataList.begin() + (size));
+        m_dataList.erase(m_dataList.begin(), (m_dataList.begin() + (int64_t)size));
     }
-};
+}

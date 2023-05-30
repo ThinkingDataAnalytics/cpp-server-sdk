@@ -1,8 +1,4 @@
-﻿//
-// Created by wwango on 2022/5/12.
-//
-
-#include <iostream>
+﻿#include <iostream>
 
 #include "../include/ThinkingAnalyticsAPI.h"
 #include "../include/TALoggerConsumer.h"
@@ -46,7 +42,7 @@ void asyncTrack2(ThinkingDataAnalytics& te) {
 }
 
 unique_ptr<TAConsumer> getLoggerConsumer() {
-    LoggerConsumer::Config config = LoggerConsumer::Config("H:/log", 20, 10, LoggerConsumer::HOURLY);
+    LoggerConsumer::Config config = LoggerConsumer::Config("H:/log", 20, 500, LoggerConsumer::HOURLY);
     config.fileNamePrefix = "te";
     config.rotateMode = LoggerConsumer::HOURLY;
     unique_ptr<TAConsumer> ptr(new LoggerConsumer(config));
@@ -70,6 +66,7 @@ int main(int argc, char *argv[]) {
     _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif
 
+
     //unique_ptr<TAConsumer> consumer = getDebugConsumer();
 
     unique_ptr<TAConsumer> consumer = getLoggerConsumer();
@@ -77,6 +74,7 @@ int main(int argc, char *argv[]) {
     //unique_ptr<TAConsumer> consumer = getBatchConsumer();
 
     ThinkingDataAnalytics te(*consumer, false);
+
 
     // setSuperProperties
     PropertiesNode superProperties;
@@ -91,7 +89,7 @@ int main(int argc, char *argv[]) {
     properties.SetString("name1", "XZ_debug");
     properties.SetString("name2", "logBugs");
     properties.SetString("name3", "name3");
-    properties.SetString("#uuid", "1234567890");
+    properties.SetString("#uuid", "aaa");
     properties.SetNumber("test_number_int", 3);
     properties.SetNumber("test_number_double", 3.14);
     properties.SetBool("test_bool", true);
@@ -130,9 +128,6 @@ int main(int argc, char *argv[]) {
     list_objs.emplace_back(properties);
     event_properties.SetList("objs", list_objs);
 
-    te.track(accountId, distinctId, eventName, event_properties);
-
-
     eventName = "first_event";
     event_properties.SetString("#first_check_id", "first_event");
     te.track_first(accountId, distinctId, eventName, event_properties);
@@ -146,6 +141,11 @@ int main(int argc, char *argv[]) {
     update_event_properties.SetString("price", "100");
     update_event_properties.SetBool("status", false);
     te.track_update(accountId, distinctId, eventName, updateEventId, update_event_properties);
+
+    for (size_t i = 0; i < 20; i++)
+    {
+        te.track_first(accountId, distinctId, eventName, event_properties);
+    }
 
     PropertiesNode update_event_new_properties;
     update_event_new_properties.SetBool("status", true);

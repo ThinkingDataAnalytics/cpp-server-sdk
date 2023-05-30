@@ -1,42 +1,42 @@
 #include "TALoggerConsumer.h"
 #include "TAUtils.h"
+#include <sys/stat.h>
+
+#include <utility>
 
 namespace TaSDK {
     using namespace std;
 
-    LoggerConsumer::Config::Config(const string& logDir, const int32_t bufferSize, const int32_t fileSize, const RotateMode rotateMode) :
-        logDirectory(logDir),
-        bufferSize(bufferSize),
-        fileSize(fileSize),
-        rotateMode(rotateMode)
+    LoggerConsumer::LoggerConsumer(const Config& config) :
+        m_namePrefix(config.fileNamePrefix),
+        m_logDirectory(config.logDirectory),
+        m_rotateMode(config.rotateMode),
+        m_bufferSize(config.bufferSize),
+        m_fileSize(config.fileSize),
+        m_messageCount(0)
     {
-        cout << "[ThinkingEngine] Config Initialization successful" << endl;
-    }
-
-    void LoggerConsumer::updateFilePath() {
-        if (m_namePrefix.size()) {
-            m_fileName = m_filePath + kPathSeparator + m_namePrefix + "log.";
-        } else {
-            m_fileName = m_filePath + kPathSeparator + "log.";
+        if (config.logDirectory.empty()) {
+            ErrorLog("The specified directory path logDirectory cannot be empty!")
+            return;
         }
 
-        time_t time_seconds = time(0);
-        struct tm ltm;
-
-#if defined(_WIN32)
-        localtime_s(&ltm, &time_seconds);
+#ifdef WIN32
+        if (_access_s(m_logDirectory.c_str(), 0) == -1) {
+            int32_t flag = _mkdir(m_logDirectory.c_str());
 #else
-        localtime_r(&time_seconds, &ltm);
+        if (access(m_logDirectory.c_str(), 0) == -1) {
+            int32_t flag = mkdir(m_logDirectory.c_str(), S_IRWXU);
 #endif
-        m_fileName += to_string((1900 + ltm.tm_year));
-        m_fileName += "-";
-        m_fileName += to_string((1 + ltm.tm_mon));
-        m_fileName += "-";
-        m_fileName += to_string(ltm.tm_mday);
-        if (m_rotateMode == HOURLY) {
-            m_fileName += "-";
-            m_fileName += to_string(ltm.tm_hour);
+            if (flag == 0) {
+                std::cout << "Create directory successfully." << std::endl;
+            }
+            else {
+                std::cout << "Fail to create directory." << std::endl;
+                throw std::exception();
+            }
         }
+
+        cout << "[ThinkingEngine] LoggerConsumer Initialization successful" << endl;
     }
 
     void LoggerConsumer::flush() {
@@ -46,8 +46,8 @@ namespace TaSDK {
     }
 
     void LoggerConsumer::add(const string& record) {
-        if (record.size() <= 0) {
-            ErrorLog("Failed to add data, data is empty.");
+        if (record.empty()) {
+            ErrorLog("Failed to add data, data is empty.")
             return;
         }
 
@@ -65,29 +65,6 @@ namespace TaSDK {
         m_flush_mutex.unlock();
     }
 
-    string LoggerConsumer::getFileName() {
-        updateFilePath();
-        int32_t count = 0;
-        string fullFileName = m_fileName + "_" + to_string(count);
-        if (m_fileSize > 0) {
-            ifstream inFile(fullFileName, ios::in | ios::binary);
-            while (inFile) {
-                int64_t l, m;
-                l = inFile.tellg();
-                inFile.seekg(0, ios::end);
-                m = inFile.tellg();
-                if (((m - l) / (static_cast<long long>(1024) * 1024)) < m_fileSize) {
-                    break;
-                }
-                ++count;
-                fullFileName = m_fileName + "_" + to_string(count);
-                inFile.close();
-                inFile.open(fullFileName, ios::in | ios::binary);
-            }
-        }
-        return fullFileName;
-    }
-
     void LoggerConsumer::close() {
         m_flush_mutex.lock();
         sendData();
@@ -97,63 +74,146 @@ namespace TaSDK {
     }
 
     void LoggerConsumer::sendData() {
-        if (m_messageBuffer.size() <= 0) {
+        if (m_messageBuffer.empty()) {
             return;
         }
 
-        string fileNamePath = getFileName();
-
-        if (m_currentFileNamePath != fileNamePath) {
-            m_outFile.close();
-            m_outFile.open(fileNamePath, ios::out | ios::app);
-            m_currentFileNamePath = fileNamePath;
-        }
+        reloadOStream();
 
         if (m_outFile) {
-            m_outFile.write(m_messageBuffer.c_str(), strlen(m_messageBuffer.c_str()));
+            m_outFile.write(m_messageBuffer.c_str(), (streamsize)(strlen(m_messageBuffer.c_str())));
             m_outFile.flush();
         }
         else {
-            ErrorLog("File open fail.");
+            ErrorLog("File open fail.")
         }
         m_messageBuffer = "";
         m_messageCount = 0;
     }
 
-    LoggerConsumer::LoggerConsumer(const Config& config) :
-        m_fileName(config.logDirectory),
-        m_namePrefix(config.fileNamePrefix),
-        m_filePath(config.logDirectory),
-        m_rotateMode(config.rotateMode),
-        m_bufferSize(config.bufferSize),
-        m_fileSize(config.fileSize),
-        m_messageCount(0)
-    {
-        if (config.logDirectory.size() <= 0) {
-            ErrorLog("The specified directory path logDirectory cannot be empty!");
+    string LoggerConsumer::generateRotateFileName() {
+        string rotateFileName;
+
+        if (!m_namePrefix.empty()) {
+            rotateFileName = m_logDirectory + kPathSeparator + m_namePrefix + "log.";
+        }
+        else {
+            rotateFileName = m_logDirectory + kPathSeparator + "log.";
+        }
+
+        time_t time_seconds = time(nullptr);
+        struct tm ltm{};
+
+#if defined(_WIN32)
+        localtime_s(&ltm, &time_seconds);
+#else
+        localtime_r(&time_seconds, &ltm);
+#endif
+        rotateFileName += to_string((1900 + ltm.tm_year));
+        rotateFileName += "-";
+        rotateFileName += to_string((1 + ltm.tm_mon));
+        rotateFileName += "-";
+        rotateFileName += to_string(ltm.tm_mday);
+        if (m_rotateMode == HOURLY) {
+            rotateFileName += "-";
+            rotateFileName += to_string(ltm.tm_hour);
+        }
+
+        return rotateFileName;
+    }
+
+    /// <summary>
+    /// get file size. unit: byte
+    /// </summary>
+    /// <param name="fileName">: file name</param>
+    /// <returns>file size. unit:byte </returns>
+    size_t getFileSize(const char* fileName) {
+        if (fileName == nullptr) {
+            return 0;
+        }
+        struct stat statBuf{};
+        stat(fileName, &statBuf);
+        // byte
+        size_t filesize = statBuf.st_size;
+        return filesize;
+    }
+
+    void LoggerConsumer::reloadOStream() {
+        if (m_fileSize <= 0) {
+            cout << "file size is empty" << endl;
             return;
         }
 
-        int32_t flag = -1;
+        string newRotateName = generateRotateFileName();
 
-#ifdef WIN32
-        if (_access_s(m_fileName.c_str(), 0) == -1) {
-            int32_t flag = _mkdir(m_fileName.c_str());
-#else
-        if (access(m_fileName.c_str(), 0) == -1) {
-            int32_t flag = mkdir(m_fileName.c_str(), S_IRWXU);
-#endif
-            if (flag == 0) {
-                std::cout << "Create directory successfully." << std::endl;
+        if (newRotateName == m_rotateFileName)
+        {
+            // Time has no changed
+
+            if (getFileSize(m_currentFileName.c_str()) <= m_fileSize * 1024 * 1024)
+            {
+                return;
             }
-            else {
-                std::cout << "Fail to create directory." << std::endl;
-                throw std::exception();
+            else
+            {
+                int32_t count = 0;
+                string fullFileName = m_rotateFileName + "_" + to_string(count);
+                ifstream f(fullFileName);
+                while (f.good()) {
+                    f.close();
+                    ++count;
+                    fullFileName = m_rotateFileName + "_" + to_string(count);
+                    f = ifstream(fullFileName);
+                }
+                f.close();
+
+                m_currentFileName = fullFileName;
+                m_outFile = ofstream(fullFileName);
             }
         }
+        else
+        {
+            if (m_rotateFileName.empty())
+            {
+                // service start
 
-        updateFilePath();
+                m_rotateFileName = newRotateName;
 
-        cout << "[ThinkingEngine] LoggerConsumer Initialization successful" << endl;    
+                int32_t count = 0;
+                string fullFileName = m_rotateFileName + "_" + to_string(count);
+                ifstream f(fullFileName);
+                while (f.good()) {
+                    f.close();
+                    ++count;
+                    fullFileName = m_rotateFileName + "_" + to_string(count);
+                    f = ifstream(fullFileName);
+                }
+                f.close();
+
+                m_currentFileName = fullFileName;
+                m_outFile = ofstream(fullFileName);
+            }
+            else
+            {            
+                // Time has changed. Split logs by time
+
+                m_rotateFileName = newRotateName;
+
+                int32_t count = 0;
+                string fullFileName = m_rotateFileName + "_" + to_string(count);
+
+                m_currentFileName = fullFileName;
+                m_outFile = ofstream(fullFileName);
+            }
+        }
+    }
+
+    LoggerConsumer::Config::Config(string logDir, const int32_t bufferSize, const int32_t fileSize, const RotateMode rotateMode) :
+        logDirectory(std::move(logDir)),
+        bufferSize(bufferSize),
+        fileSize(fileSize),
+        rotateMode(rotateMode)
+    {
+        cout << "[ThinkingEngine] Config Initialization successful" << endl;
     }
 }

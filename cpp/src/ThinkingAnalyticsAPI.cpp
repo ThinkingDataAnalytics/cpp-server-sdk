@@ -2,9 +2,7 @@
 
 #if defined(_WIN32)
 
-#include <windows.h>
 #include <iostream>
-#include <fstream>
 
 #else
 
@@ -14,8 +12,6 @@
 #include <dirent.h>
 
 #endif
-
-#include <cstring>
 
 const static string TA_TRACK                      = "track";
 const static string TA_TRACK_UPDATE               = "track_update";
@@ -42,10 +38,10 @@ namespace TaSDK {
 
     void ThinkingDataAnalytics::track(const string& accountId, const string& distinctId, const string& eventName, const PropertiesNode& properties) {
         TAJSONObject allProperties;
+        allProperties.MergeFrom(properties);
         m_mutex.lock();
         allProperties.MergeFrom(m_supperProperties);
         m_mutex.unlock();
-        allProperties.MergeFrom(properties);
         add(accountId, distinctId, TA_TRACK, eventName, "", allProperties);
     }
 
@@ -54,7 +50,7 @@ namespace TaSDK {
             track(accountId, distinctId, eventName, properties);
         }
         else {
-            ErrorLog("#first_check_id key must set.");
+            ErrorLog("#first_check_id key must set.")
         }
     }
 
@@ -90,13 +86,12 @@ namespace TaSDK {
     }
 
     void ThinkingDataAnalytics::user_add(const string& accountId, const string& distinctId, const PropertiesNode& properties) {
-        for (std::map<string, TAJSONObject::ValueNode>::const_iterator
-            iterator = properties.properties_map_.begin();
-            iterator != properties.properties_map_.end(); ++iterator) {
-            TAJSONObject::ValueNode valueN = iterator->second;
+        for (auto iterator = properties.m_properties.begin();
+            iterator != properties.m_properties.end(); ++iterator) {
+            TAJSONObject::ValueNode valueN = *(iterator->second);
             if (valueN.node_type_ == PropertiesNode::NUMBER || valueN.node_type_ == PropertiesNode::INT) {}
             else {
-                ErrorLog("Only Number or int is allowed for user_add. Invalid property: " + iterator->first);
+                ErrorLog("Only Number or int is allowed for user_add. Invalid property: " + iterator->first)
             }
         }
         add(accountId, distinctId, TA_USER_ADD, "", "", properties);
@@ -115,64 +110,64 @@ namespace TaSDK {
     }
 
     void ThinkingDataAnalytics::user_del(const string& accountId, const string& distinctId) {
-        PropertiesNode perperties;
-        add(accountId, distinctId, TA_USER_DEL, "", "", perperties);
+        PropertiesNode properties;
+        add(accountId, distinctId, TA_USER_DEL, "", "", properties);
     }
 
     void ThinkingDataAnalytics::close() {
         m_consumer.close();
     }
 
-    void ThinkingDataAnalytics::add(const string& accountId, const string& distinctId, const string& eventType, const string& eventName, const string& eventId, TAJSONObject properties) {
-        if (accountId.size() <= 0 && distinctId.size() <= 0) {
-            ErrorLog("accountId or distinctId must be provided.");
+    void ThinkingDataAnalytics::add(const string& accountId, const string& distinctId, const string& eventType, const string& eventName, const string& eventId, const TAJSONObject& properties) {
+        if (accountId.empty() && distinctId.empty()) {
+            ErrorLog("accountId or distinctId must be provided.")
         }
 
-        TAJSONObject propertiesDic;
+        TAJSONObject propertiesDic = properties;
         TAJSONObject finalPropertiesDic;
 
-        bool transferUUIDFlag = transferWithStringMap("#uuid", properties, finalPropertiesDic);
+        bool transferUUIDFlag = transferWithStringMap("#uuid", propertiesDic, finalPropertiesDic);
         if (!transferUUIDFlag && m_enableUUID) {
             finalPropertiesDic.SetString("#uuid", getUUID());
         }
 
-        if (distinctId.size()) {
+        if (!distinctId.empty()) {
             finalPropertiesDic.SetString("#distinct_id", distinctId);
         }
-        if (accountId.size()) {
+        if (!accountId.empty()) {
             finalPropertiesDic.SetString("#account_id", accountId);
         }
 
-        transferWithStringMap("#app_id", properties, finalPropertiesDic);
+        transferWithStringMap("#app_id", propertiesDic, finalPropertiesDic);
 
-        bool transforTimeFlag = transferWithStringMap("#time", properties, finalPropertiesDic);
-        if (!transforTimeFlag) {
-            timeb t;
+        bool transferTimeFlag = transferWithStringMap("#time", propertiesDic, finalPropertiesDic);
+        if (!transferTimeFlag) {
+            timeb t{};
             ftime(&t);
             finalPropertiesDic.SetDateTime("#time", t.time, t.millitm);
         }
 
-        transferWithStringMap("#ip", properties, finalPropertiesDic);
-        transferWithStringMap("#first_check_id", properties, finalPropertiesDic);
-        transferWithStringMap("#transaction_property", properties, finalPropertiesDic);
-        transferWithStringMap("#import_tool_id", properties, finalPropertiesDic);
+        transferWithStringMap("#ip", propertiesDic, finalPropertiesDic);
+        transferWithStringMap("#first_check_id", propertiesDic, finalPropertiesDic);
+        transferWithStringMap("#transaction_property", propertiesDic, finalPropertiesDic);
+        transferWithStringMap("#import_tool_id", propertiesDic, finalPropertiesDic);
 
         finalPropertiesDic.SetString("#type", eventType);
 
         if (eventType == TA_TRACK || eventType == TA_TRACK_UPDATE || eventType == TA_TRACK_OVERWRITE) {
-            if (eventName.size()) {
+            if (!eventName.empty()) {
                 finalPropertiesDic.SetString("#event_name", eventName);
             }
             else {
-                ErrorLog("The event name must be provided.");
+                ErrorLog("The event name must be provided.")
             }
 
             if (eventType == TA_TRACK_UPDATE || eventType == TA_TRACK_OVERWRITE) {
-                if (eventId.size()) {
+                if (!eventId.empty()) {
                     finalPropertiesDic.SetString("#event_id", eventId);
                 }
                 else {
-                    ErrorLog("The event id must be provided.");
+                    ErrorLog("The event id must be provided.")
                 }
             }
 
@@ -180,35 +175,24 @@ namespace TaSDK {
             propertiesDic.SetString("#lib_version", LIB_VERSION);
         }
 
-        propertiesDic.MergeFrom(properties);
-
         finalPropertiesDic.SetObject("properties", propertiesDic);
 
-        string record = finalPropertiesDic.ToJson(finalPropertiesDic);
+        string record = TAJSONObject::ToJson(finalPropertiesDic);
 
         m_consumer.add(record);
     }
 
-    bool ThinkingDataAnalytics::transferWithStringMap(const string& key, TAJSONObject& sourceProperties, TAJSONObject& distinationProperties) {
+    bool ThinkingDataAnalytics::transferWithStringMap(const string& key, TAJSONObject& sourceProperties, TAJSONObject& destinationProperties) {
         if (sourceProperties.ContainsWithKey(key)) {
-            PropertiesNode::ValueNode vauleNode;
-            sourceProperties.FindNode(key, vauleNode);
-            string valueStr;
-            vauleNode.ToStr(vauleNode, &valueStr);
-            valueStr.erase(0, 1);
-            valueStr.erase(valueStr.find("\""), 1);
-            if (valueStr.size()) {
-                distinationProperties.SetString(key, valueStr);
+            shared_ptr<TAJSONObject::ValueNode> valueNode = sourceProperties.FindNode(key);
+            if (valueNode != nullptr)
+            {
+                destinationProperties.m_properties[key] = valueNode;
                 sourceProperties.RemoveNode(key);
                 return true;
-            }
-            else {
-                return false;
-            }
+            }   
         }
-        else {
-            return false;
-        }
+        return false;
     }
 
     void ThinkingDataAnalytics::setSupperProperties(const PropertiesNode& supperProperties) {

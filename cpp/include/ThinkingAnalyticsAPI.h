@@ -1,5 +1,5 @@
-#ifndef CPP_THINKINGANALYTICSAPI_H
-#define CPP_THINKINGANALYTICSAPI_H
+#ifndef CPP_THINKING_ANALYTICS_API_H
+#define CPP_THINKING_ANALYTICS_API_H
 
 #include <string>
 #include <iostream>
@@ -17,7 +17,6 @@ namespace TaSDK {
 
     class ThinkingDataAnalytics {
         
-
     private:
         TAConsumer& m_consumer;
         bool m_enableUUID;
@@ -25,7 +24,7 @@ namespace TaSDK {
         mutex m_mutex;
 
     public:
-        ThinkingDataAnalytics(TAConsumer &consumer);
+        explicit ThinkingDataAnalytics(TAConsumer &consumer);
         ThinkingDataAnalytics(TAConsumer &consumer, bool enableUUID);
 
         /*!
@@ -144,12 +143,12 @@ namespace TaSDK {
         void clearSuperProperties();
 
     private:
-        void add(const string &accountId, const string &distinctId, const string &eventType, const string &eventName, const string &eventId, TAJSONObject properties);
+        void add(const string &accountId, const string &distinctId, const string &eventType, const string &eventName, const string &eventId, const TAJSONObject& properties);
 
-        bool transferWithStringMap(const string &key, TAJSONObject &sourceProperties, TAJSONObject &distinationProperties);
+        static bool transferWithStringMap(const string &key, TAJSONObject &sourceProperties, TAJSONObject &destinationProperties);
     };
 
 
 } // TaSDK
 
-#endif //CPP_THINKINGANALYTICSAPI_H
+#endif //CPP_THINKING_ANALYTICS_API_H

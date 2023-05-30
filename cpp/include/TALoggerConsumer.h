@@ -1,5 +1,5 @@
-#ifndef CPP_TALOGGERCONSUMER_H
-#define CPP_TALOGGERCONSUMER_H
+#ifndef CPP_TD_LOGGER_CONSUMER_H
+#define CPP_TD_LOGGER_CONSUMER_H
 
 #include "TAConsumer.h"
 
@@ -24,7 +24,7 @@ namespace TaSDK {
     using namespace std;
 
     /// <summary>
-    /// write data to file. use it with logbus
+    /// write data to file. use it with logBus
     /// </summary>
     class LoggerConsumer : public TAConsumer {
 
@@ -37,12 +37,24 @@ namespace TaSDK {
             HOURLY
         };
 
+        class Config;
+
+        explicit LoggerConsumer(const Config& config);
+
+        string generateRotateFileName();
+
+        void add(const string& record) override;
+
+        void flush() override;
+
+        void close() override;
+
+        void reloadOStream();
+
     private:
         string m_namePrefix;
-        // file name
-        string m_filePath;
-        // file name
-        string m_fileName;
+        // file path
+        string m_logDirectory;
         // When there is data to upload, when the number of data cache reaches the bufferSize, upload the data immediately
         int32_t m_bufferSize;
         // single file size
@@ -53,8 +65,15 @@ namespace TaSDK {
         int32_t m_messageCount;
         RotateMode m_rotateMode;
         mutex m_flush_mutex;
+
         ofstream m_outFile;
-        string m_currentFileNamePath;
+
+        // e.g. ta.log.2023-02-02-12_0
+        string m_currentFileName;
+
+        // e.g. ta.log.2023-02-02-12 without index.
+        string m_rotateFileName;
+        
         void sendData();
 
     public:
@@ -72,23 +91,10 @@ namespace TaSDK {
             // The size threshold of a single file, the default value is 0 means infinity, the unit is M
             int32_t fileSize;
 
-        public:
             // When there is data to upload, when the number of data cache reaches the bufferSize, upload the data immediately, default 20. fileSize default 2M
-            Config(const string& logDir, const int32_t bufferSize = 20, const int32_t fileSize = 10, const RotateMode rotateMode = LoggerConsumer::RotateMode::DAILY);
+            explicit Config(string logDir, int32_t bufferSize = 20, int32_t fileSize = 10, RotateMode rotateMode = LoggerConsumer::RotateMode::DAILY);
         };
-
-    public:
-        LoggerConsumer(const Config& config);
-
-        void updateFilePath();
-
-        void add(const string& record);
-
-        void flush();
-
-        void close();
-
-        string getFileName();
+        
     };
 }
 

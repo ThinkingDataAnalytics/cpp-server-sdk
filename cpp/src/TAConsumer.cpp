@@ -2,8 +2,6 @@
 
 namespace TaSDK {
 
-	TAConsumer::~TAConsumer() {
-
-	}
+	TAConsumer::~TAConsumer() = default;
 
 }
