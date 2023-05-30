@@ -1,3 +1,10 @@
+### v1.2.8-beta.1
+**Date:** 2023/05/30
+
+**Notes:**
+
+* Improve data write efficiency
+
 ### v1.2.7
 **Date:** 2023/04/07
 
