@@ -23,7 +23,7 @@ const std::string kPathSeparator =
 namespace TaSDK {
     using namespace std;
 
-    const string LIB_VERSION = "1.2.8-beta.1";
+    const string LIB_VERSION = "1.2.8-beta.2";
     const string LIB_NAME = "tga_cpp_sdk";
 
     /*!

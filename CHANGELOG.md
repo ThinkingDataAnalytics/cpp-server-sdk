@@ -1,3 +1,10 @@
+### v1.2.8-beta.2
+**Date:** 2023/06/02
+
+**Notes:**
+
+* Handle invalid iterators
+
 ### v1.2.8-beta.1
 **Date:** 2023/05/30
 

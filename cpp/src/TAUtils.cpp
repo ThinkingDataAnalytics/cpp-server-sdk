@@ -297,7 +297,7 @@ namespace TaSDK {
    
     shared_ptr<TAJSONObject::ValueNode> TAJSONObject::FindNode(const string& key) {
         map<string, shared_ptr<ValueNode>>::const_iterator iter = m_properties.find(key);
-        if (iter->first == key) {
+        if (iter != m_properties.end() && iter->first == key) {
             return iter->second;
         }
         return nullptr;
