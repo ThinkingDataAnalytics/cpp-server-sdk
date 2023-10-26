@@ -1,5 +1,5 @@
 
-#include "TAUtils.h"
+#include "TDUtils.h"
 
 #include <iostream>
 #include <string>
@@ -7,8 +7,9 @@
 #include <random>
 #include <iomanip>
 #include <utility>
+#include <chrono>
 
-namespace TaSDK {
+namespace thinkingDataAnalytics {
 
 #if defined(__linux__)
 #define TD_SDK_LOCALTIME(seconds, now) localtime_r((seconds), (now))
@@ -19,7 +20,7 @@ namespace TaSDK {
 #define snprintf sprintf_s
 #endif
 
-    string getUUID() {
+    std::string getUUID() {
         static std::random_device rd;
         static std::uniform_int_distribution<uint64_t> dist(0ULL, 0xFFFFFFFFFFFFFFFFULL);
         uint64_t ab = dist(rd);
@@ -42,7 +43,7 @@ namespace TaSDK {
         return ss.str();
     }
 
-    string formatDateTime(const time_t& seconds, int32_t milliseconds) {
+    std::string formatDateTime(const time_t& seconds, int32_t milliseconds) {
         struct tm tm = {};
         TD_SDK_LOCALTIME(&seconds, &tm);
         char buff[64];
@@ -57,7 +58,7 @@ namespace TaSDK {
         return buff;
     }
 
-    bool assertProperties(const string &key) {
+    bool assertProperties(const std::string &key) {
 //        regex keyPattern("^(#[a-z][a-z0-9_]{0,49})|([a-z][a-z0-9_]{0,50})$", regex::icase|regex::ECMAScript);
 //        smatch result;
 //        return regex_match(key, result, keyPattern);
@@ -66,7 +67,7 @@ namespace TaSDK {
 
     static const size_t kStringPropertyValueMaxLength = 8192;
 
-    bool CheckUtf8Valid(const string &str) {
+    bool CheckUtf8Valid(const std::string &str) {
         const auto *bytes = (const unsigned char *) str.data();
         const unsigned char *begin = bytes;
         while (bytes - begin < (int) str.length()) {
@@ -109,32 +110,32 @@ namespace TaSDK {
         return bytes - begin == str.length();
     }
 
-    /*********************************  TAJSONObject  *********************************/
+    /*********************************  TDJsonObject  *********************************/
 
-    TAJSONObject::TAJSONObject() = default;
+    TDJsonObject::TDJsonObject() = default;
 
-    void TAJSONObject::SetNumber(const string& property_name, double value) {
+    void TDJsonObject::SetNumber(const std::string& property_name, double value) {
         if (!assertProperties(property_name)) {
             ErrorLog("Invalid key format: " + property_name)
         }
-        m_properties[property_name] = make_shared<ValueNode>(value);
+        m_properties[property_name] = std::make_shared<TDValueNode>(value);
     }
 
-    void TAJSONObject::SetNumber(const string& property_name, int32_t value) {
+    void TDJsonObject::SetNumber(const std::string& property_name, int32_t value) {
         if (!assertProperties(property_name)) {
             ErrorLog("Invalid key format: " + property_name)
         }
-        m_properties[property_name] = make_shared<ValueNode>(static_cast<int64_t>(value));
+        m_properties[property_name] = std::make_shared<TDValueNode>(static_cast<int64_t>(value));
     }
 
-    void TAJSONObject::SetNumber(const string& property_name, int64_t value) {
+    void TDJsonObject::SetNumber(const std::string& property_name, int64_t value) {
         if (!assertProperties(property_name)) {
             ErrorLog("Invalid key format: " + property_name)
         }
-        m_properties[property_name] = make_shared<ValueNode>(value);
+        m_properties[property_name] = std::make_shared<TDValueNode>(value);
     }
 
-    void TAJSONObject::SetString(const string &property_name, const string &value) {
+    void TDJsonObject::SetString(const std::string &property_name, const std::string &value) {
         if (value.length() > kStringPropertyValueMaxLength) {
             std::cerr << "String property '" << property_name
                       << "' is too int64_t, value: " << value << std::endl;
@@ -142,7 +143,7 @@ namespace TaSDK {
         }
         if (!CheckUtf8Valid(value)) {
             std::cerr << "String property '" << property_name
-                      << "' is not valid UTF-8 string, value: " << value
+                      << "' is not valid UTF-8 std::string, value: " << value
                       << std::endl;
             return;
         }
@@ -150,72 +151,72 @@ namespace TaSDK {
             ErrorLog("Invalid key format: " + property_name)
         }
 
-        m_properties[property_name] = make_shared<ValueNode>(value);
+        m_properties[property_name] = std::make_shared<TDValueNode>(value);
     }
 
-    void TAJSONObject::SetString(const string &property_name, const char *value) {
-        SetString(property_name, string(value));
+    void TDJsonObject::SetString(const std::string &property_name, const char *value) {
+        SetString(property_name, std::string(value));
     }
 
-    void TAJSONObject::SetBool(const string &property_name, bool value) {
+    void TDJsonObject::SetBool(const std::string &property_name, bool value) {
         if (!assertProperties(property_name)) {
             ErrorLog("Invalid key format: " + property_name)
         }
-        m_properties[property_name] = make_shared<ValueNode>(value);
+        m_properties[property_name] = std::make_shared<TDValueNode>(value);
     }
 
-    void TAJSONObject::SetObject(const string &property_name, const TAJSONObject &value) {
+    void TDJsonObject::SetObject(const std::string &property_name, const TDJsonObject &value) {
         if (!assertProperties(property_name)) {
             ErrorLog("Invalid key format: " + property_name)
         }
-        m_properties[property_name] = make_shared<ValueNode>(value);
+        m_properties[property_name] = std::make_shared<TDValueNode>(value);
     }
 
-    void TAJSONObject::SetList(const string &property_name,
-                               const std::vector<string> &value) {
+    void TDJsonObject::SetList(const std::string &property_name,
+                               const std::vector<std::string> &value) {
         if (!assertProperties(property_name)) {
             ErrorLog("Invalid key format: " + property_name)
         }
-        m_properties[property_name] = make_shared<ValueNode>(value);
+        m_properties[property_name] = std::make_shared<TDValueNode>(value);
     }
 
-    void TAJSONObject::SetList(const string &property_name,
-                               const std::vector<TAJSONObject> &value) {
+    void TDJsonObject::SetList(const std::string &property_name,
+                               const std::vector<TDJsonObject> &value) {
         if (!assertProperties(property_name)) {
             ErrorLog("Invalid key format: " + property_name)
         }
-        m_properties[property_name] = make_shared<ValueNode>(value);
+        m_properties[property_name] = std::make_shared<TDValueNode>(value);
     }
 
-    void TAJSONObject::SetDateTime(const string &property_name,
+    void TDJsonObject::SetDateTime(const std::string &property_name,
                                    const time_t seconds,
                                    int32_t milliseconds) {
         if (!assertProperties(property_name)) {
             ErrorLog("Invalid key format: " + property_name)
         }
-        m_properties[property_name] = make_shared<ValueNode>(seconds, milliseconds);
+        m_properties[property_name] = std::make_shared<TDValueNode>(seconds, milliseconds);
     }
 
-    void TAJSONObject::SetDateTime(const string &property_name,
-                                          const string &value) {
+    void TDJsonObject::SetDateTime(const std::string &property_name,
+                                   const std::string &value) {
         if (!assertProperties(property_name)) {
             ErrorLog("Invalid key format: " + property_name)
         }
-        m_properties[property_name] = make_shared<ValueNode>(value);
+        m_properties[property_name] = std::make_shared<TDValueNode>(value);
     }
 
-    void TAJSONObject::Clear() {
+    void TDJsonObject::Clear() {
         m_properties.clear();
     }
 
-    void TAJSONObject::DumpNode(const TAJSONObject& node, rapidjson::Writer<rapidjson::StringBuffer>& writer) {
+    void TDJsonObject::DumpNode(const TDJsonObject& node, rapidjson::Writer<rapidjson::StringBuffer>& writer) {
         writer.StartObject();
 
         for (const auto & pairValue : node.m_properties) {
 
             writer.Key(pairValue.first.c_str());
 
-            ValueNode& contentNode = *(pairValue.second);
+            TDValueNode& contentNode = *(pairValue.second);
 
             switch (contentNode.node_type_) {
             case NUMBER: {
@@ -230,27 +231,27 @@ namespace TaSDK {
             case LIST: {
                 writer.StartArray();
 
-                for (const string& var : contentNode.list_data_)
+                for (const std::string& var : contentNode.list_data_)
                 {
                     writer.String(var.c_str());
                 }
 
                 writer.EndArray();
             } break;
-            case BOOL: {
+            case TD_BOOL: {
                 writer.Bool(contentNode.value_.bool_value);
             } break;
             case OBJECT: {
                 DumpNode(contentNode.object_data_, writer);
             } break;
             case DATETIME: {
-                string str = formatDateTime(contentNode.value_.date_time_value.seconds, contentNode.value_.date_time_value.milliseconds);
+                std::string str = formatDateTime(contentNode.value_.date_time_value.seconds, contentNode.value_.date_time_value.milliseconds);
                 writer.String(str.c_str());
             } break;
             case OBJECTS: {
                 writer.StartArray();
 
-                for (const TAJSONObject& var : contentNode.list_obj_)
+                for (const TDJsonObject& var : contentNode.list_obj_)
                 {
                     DumpNode(var, writer);
                 }
@@ -265,26 +266,26 @@ namespace TaSDK {
         writer.EndObject();
     }
 
-    string TAJSONObject::ToJson(const TAJSONObject& node) {
+    std::string TDJsonObject::ToJson(const TDJsonObject& node) {
 
         rapidjson::StringBuffer strBuf;
         rapidjson::Writer<rapidjson::StringBuffer> writer(strBuf);
 
         DumpNode(node, writer);
 
-        string buffer = strBuf.GetString();
+        std::string buffer = strBuf.GetString();
 
         return buffer;
     }
 
-    void TAJSONObject::MergeFrom(const TAJSONObject& another_node) {
+    void TDJsonObject::MergeFrom(const TDJsonObject& another_node) {
         for (const auto & pairValue : another_node.m_properties) {
             m_properties[pairValue.first] = pairValue.second;
         }
     }
 
-    bool TAJSONObject::ContainsWithKey(const string& key) {
-        map<string, shared_ptr<ValueNode>>::const_iterator iter = m_properties.find(key);
+    bool TDJsonObject::ContainsWithKey(const std::string& key) {
+        std::map<std::string, std::shared_ptr<TDValueNode>>::const_iterator iter = m_properties.find(key);
 
         if (iter != m_properties.end())
         {
@@ -295,53 +296,64 @@ namespace TaSDK {
         }
     }
    
-    shared_ptr<TAJSONObject::ValueNode> TAJSONObject::FindNode(const string& key) {
-        map<string, shared_ptr<ValueNode>>::const_iterator iter = m_properties.find(key);
+    std::shared_ptr<TDJsonObject::TDValueNode> TDJsonObject::FindNode(const std::string& key) {
+        std::map<std::string, std::shared_ptr<TDValueNode>>::const_iterator iter = m_properties.find(key);
         if (iter != m_properties.end() && iter->first == key) {
             return iter->second;
         }
         return nullptr;
     }
 
-    bool TAJSONObject::RemoveNode(const string& key) {
+    bool TDJsonObject::RemoveNode(const std::string& key) {
         return m_properties.erase(key);
     }
 
-    /*********************************  ValueNode  *********************************/
+    /*********************************  TDValueNode  *********************************/
     
-    TAJSONObject::ValueNode::ValueNode(double value) : node_type_(NUMBER) {
+    TDJsonObject::TDValueNode::TDValueNode(double value) : node_type_(NUMBER) {
         value_.number_value = value;
     }
 
-    TAJSONObject::ValueNode::ValueNode(int64_t value) : node_type_(INT) {
+    TDJsonObject::TDValueNode::TDValueNode(int64_t value) : node_type_(INT) {
         value_.int_value = value;
     }
 
-    TAJSONObject::ValueNode::ValueNode(string value)
+    TDJsonObject::TDValueNode::TDValueNode(std::string value)
             : node_type_(STRING),
               m_data_string(std::move(value)) {}
 
-    TAJSONObject::ValueNode::ValueNode(bool value) : node_type_(BOOL) {
+    TDJsonObject::TDValueNode::TDValueNode(bool value) : node_type_(TD_BOOL) {
         value_.bool_value = value;
     }
 
-    TAJSONObject::ValueNode::ValueNode(const TAJSONObject &value)
+    TDJsonObject::TDValueNode::TDValueNode(const TDJsonObject &value)
             : node_type_(OBJECT) {
         object_data_ = value;
     }
 
-    TAJSONObject::ValueNode::ValueNode(const std::vector<string> &value)
+    TDJsonObject::TDValueNode::TDValueNode(const std::vector<std::string> &value)
             : node_type_(LIST),
               list_data_(value) {}
 
-    TAJSONObject::ValueNode::ValueNode(const std::vector<TAJSONObject> &value)
+    TDJsonObject::TDValueNode::TDValueNode(const std::vector<TDJsonObject> &value)
             : node_type_(OBJECTS),
               list_obj_(value) {}
 
-    TAJSONObject::ValueNode::ValueNode(time_t seconds, int32_t milliseconds)
+    TDJsonObject::TDValueNode::TDValueNode(time_t seconds, int32_t milliseconds)
             : node_type_(DATETIME) {
         value_.date_time_value.seconds = seconds;
         value_.date_time_value.milliseconds = milliseconds;
     }
 
-} // TaSDK
+    bool TDLog::enable = false;
+    void TDLog::info(const std::string & message) {
+        if (TDLog::enable) {
+            std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
+            std::time_t now_c = std::chrono::system_clock::to_time_t(now);
+            std::tm* timeInfo = std::localtime(&now_c);
+            char buffer[80];
+            std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", timeInfo);
+            std::cout << "[ThinkingData]" << "[" << buffer << "] " <<  message << std::endl;
+        }
+    }
+}

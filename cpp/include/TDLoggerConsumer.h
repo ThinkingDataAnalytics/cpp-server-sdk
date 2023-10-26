@@ -1,7 +1,7 @@
 #ifndef CPP_TD_LOGGER_CONSUMER_H
 #define CPP_TD_LOGGER_CONSUMER_H
 
-#include "TAConsumer.h"
+#include "TDConsumer.h"
 
 #if defined(_WIN32)
 #include <io.h>
@@ -19,19 +19,17 @@
 #include <mutex>
 
 
-namespace TaSDK {
+namespace thinkingDataAnalytics {
 
-    using namespace std;
-
-    /// <summary>
-    /// write data to file. use it with logBus
-    /// </summary>
-    class LoggerConsumer : public TAConsumer {
+    /**
+     * Write data to file. use it with logBus
+     */
+    class TDLoggerConsumer : public TDConsumer {
 
     public:
-        /// <summary>
-        /// file rotate model¡£by days or hours
-        /// </summary>
+        /**
+         * File rotate model by days or hours
+         */
         enum RotateMode {
             DAILY,
             HOURLY
@@ -39,11 +37,11 @@ namespace TaSDK {
 
         class Config;
 
-        explicit LoggerConsumer(const Config& config);
+        explicit TDLoggerConsumer(const Config& config);
 
-        string generateRotateFileName();
+        std::string generateRotateFileName();
 
-        void add(const string& record) override;
+        void add(const std::string& record) override;
 
         void flush() override;
 
@@ -52,47 +50,50 @@ namespace TaSDK {
         void reloadOStream();
 
     private:
-        string m_namePrefix;
+        std::string m_namePrefix;
         // file path
-        string m_logDirectory;
+        std::string m_logDirectory;
         // When there is data to upload, when the number of data cache reaches the bufferSize, upload the data immediately
         int32_t m_bufferSize;
         // single file size
         int32_t m_fileSize;
         // Cache each event data into memory
-        string m_messageBuffer;
+        std::string m_messageBuffer;
         // Cache event data count into memory
         int32_t m_messageCount;
         RotateMode m_rotateMode;
-        mutex m_flush_mutex;
+        std::mutex m_flush_mutex;
 
-        ofstream m_outFile;
+        std::ofstream m_outFile;
 
         // e.g. ta.log.2023-02-02-12_0
-        string m_currentFileName;
+        std::string m_currentFileName;
 
         // e.g. ta.log.2023-02-02-12 without index.
-        string m_rotateFileName;
+        std::string m_rotateFileName;
         
         void sendData();
 
     public:
+        /**
+         * LoggerConsumer config
+         */
         class Config {
 
         public:
             // Data storage directory
-            string logDirectory;
+            std::string logDirectory;
             // When there is data to upload, when the number of data cache reaches the bufferSize, upload the data immediately
             int32_t bufferSize;
             // By default, the log is divided into days
             RotateMode rotateMode;
             // log file prefix
-            string fileNamePrefix;
+            std::string fileNamePrefix;
             // The size threshold of a single file, the default value is 0 means infinity, the unit is M
             int32_t fileSize;
 
             // When there is data to upload, when the number of data cache reaches the bufferSize, upload the data immediately, default 20. fileSize default 2M
-            explicit Config(string logDir, int32_t bufferSize = 20, int32_t fileSize = 10, RotateMode rotateMode = LoggerConsumer::RotateMode::DAILY);
+            explicit Config(std::string logDir, int32_t bufferSize = 20, int32_t fileSize = 10, RotateMode rotateMode = TDLoggerConsumer::RotateMode::DAILY);
         };
         
     };

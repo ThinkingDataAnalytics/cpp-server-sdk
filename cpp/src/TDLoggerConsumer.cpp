@@ -1,13 +1,12 @@
-#include "TALoggerConsumer.h"
-#include "TAUtils.h"
+#include "TDLoggerConsumer.h"
+#include "TDUtils.h"
 #include <sys/stat.h>
 
 #include <utility>
 
-namespace TaSDK {
-    using namespace std;
+namespace thinkingDataAnalytics {
 
-    LoggerConsumer::LoggerConsumer(const Config& config) :
+    TDLoggerConsumer::TDLoggerConsumer(const Config& config) :
         m_namePrefix(config.fileNamePrefix),
         m_logDirectory(config.logDirectory),
         m_rotateMode(config.rotateMode),
@@ -36,16 +35,17 @@ namespace TaSDK {
             }
         }
 
-        cout << "[ThinkingEngine] LoggerConsumer Initialization successful" << endl;
+        TDLog::info("TDLoggerConsumer initialization successful");
     }
 
-    void LoggerConsumer::flush() {
+    void TDLoggerConsumer::flush() {
+        TDLog::info("TDLoggerConsumer flush data.");
         m_flush_mutex.lock();
         sendData();
         m_flush_mutex.unlock();
     }
 
-    void LoggerConsumer::add(const string& record) {
+    void TDLoggerConsumer::add(const std::string& record) {
         if (record.empty()) {
             ErrorLog("Failed to add data, data is empty.")
             return;
@@ -57,6 +57,8 @@ namespace TaSDK {
         m_messageBuffer += "\n";
         m_messageCount++;
 
+        TDLog::info("Enqueue data to buffer. Buffer count: " + std::to_string(m_messageCount) + ", data: " + record);
+
         // When there is data to upload, when the number of data cache reaches the bufferSize, upload the data immediately
         if (m_messageCount >= m_bufferSize) {
             sendData();
@@ -65,23 +67,27 @@ namespace TaSDK {
         m_flush_mutex.unlock();
     }
 
-    void LoggerConsumer::close() {
+    void TDLoggerConsumer::close() {
         m_flush_mutex.lock();
         sendData();
         m_outFile.flush();
         m_outFile.close();
         m_flush_mutex.unlock();
+
+        TDLog::info("TDLoggerConsumer close.");
     }
 
-    void LoggerConsumer::sendData() {
+    void TDLoggerConsumer::sendData() {
         if (m_messageBuffer.empty()) {
             return;
         }
 
+        TDLog::info("TDLoggerConsumer write to file.");
+
         reloadOStream();
 
         if (m_outFile) {
-            m_outFile.write(m_messageBuffer.c_str(), (streamsize)(strlen(m_messageBuffer.c_str())));
+            m_outFile.write(m_messageBuffer.c_str(), (std::streamsize)(strlen(m_messageBuffer.c_str())));
             m_outFile.flush();
         }
         else {
@@ -91,8 +97,8 @@ namespace TaSDK {
         m_messageCount = 0;
     }
 
-    string LoggerConsumer::generateRotateFileName() {
-        string rotateFileName;
+    std::string TDLoggerConsumer::generateRotateFileName() {
+        std::string rotateFileName;
 
         if (!m_namePrefix.empty()) {
             rotateFileName = m_logDirectory + kPathSeparator + m_namePrefix + "log.";
@@ -109,14 +115,14 @@ namespace TaSDK {
 #else
         localtime_r(&time_seconds, &ltm);
 #endif
-        rotateFileName += to_string((1900 + ltm.tm_year));
+        rotateFileName += std::to_string((1900 + ltm.tm_year));
         rotateFileName += "-";
-        rotateFileName += to_string((1 + ltm.tm_mon));
+        rotateFileName += std::to_string((1 + ltm.tm_mon));
         rotateFileName += "-";
-        rotateFileName += to_string(ltm.tm_mday);
+        rotateFileName += std::to_string(ltm.tm_mday);
         if (m_rotateMode == HOURLY) {
             rotateFileName += "-";
-            rotateFileName += to_string(ltm.tm_hour);
+            rotateFileName += std::to_string(ltm.tm_hour);
         }
 
         return rotateFileName;
@@ -138,13 +144,13 @@ namespace TaSDK {
         return filesize;
     }
 
-    void LoggerConsumer::reloadOStream() {
+    void TDLoggerConsumer::reloadOStream() {
         if (m_fileSize <= 0) {
-            cout << "file size is empty" << endl;
+            std::cout << "file size is empty" << std::endl;
             return;
         }
 
-        string newRotateName = generateRotateFileName();
+        std::string newRotateName = generateRotateFileName();
 
         if (newRotateName == m_rotateFileName)
         {
@@ -157,18 +163,18 @@ namespace TaSDK {
             else
             {
                 int32_t count = 0;
-                string fullFileName = m_rotateFileName + "_" + to_string(count);
-                ifstream f(fullFileName);
+                std::string fullFileName = m_rotateFileName + "_" + std::to_string(count);
+                std::ifstream f(fullFileName);
                 while (f.good()) {
                     f.close();
                     ++count;
-                    fullFileName = m_rotateFileName + "_" + to_string(count);
-                    f = ifstream(fullFileName);
+                    fullFileName = m_rotateFileName + "_" + std::to_string(count);
+                    f = std::move(std::ifstream(fullFileName));
                 }
                 f.close();
 
                 m_currentFileName = fullFileName;
-                m_outFile = ofstream(fullFileName);
+                m_outFile = std::move(std::ofstream(fullFileName));
             }
         }
         else
@@ -180,18 +186,18 @@ namespace TaSDK {
                 m_rotateFileName = newRotateName;
 
                 int32_t count = 0;
-                string fullFileName = m_rotateFileName + "_" + to_string(count);
-                ifstream f(fullFileName);
+                std::string fullFileName = m_rotateFileName + "_" + std::to_string(count);
+                std::ifstream f(fullFileName);
                 while (f.good()) {
                     f.close();
                     ++count;
-                    fullFileName = m_rotateFileName + "_" + to_string(count);
-                    f = ifstream(fullFileName);
+                    fullFileName = m_rotateFileName + "_" + std::to_string(count);
+                    f = std::move(std::ifstream(fullFileName));
                 }
                 f.close();
 
                 m_currentFileName = fullFileName;
-                m_outFile = ofstream(fullFileName);
+                m_outFile = std::move(std::ofstream(fullFileName));
             }
             else
             {            
@@ -200,20 +206,19 @@ namespace TaSDK {
                 m_rotateFileName = newRotateName;
 
                 int32_t count = 0;
-                string fullFileName = m_rotateFileName + "_" + to_string(count);
+                std::string fullFileName = m_rotateFileName + "_" + std::to_string(count);
 
                 m_currentFileName = fullFileName;
-                m_outFile = ofstream(fullFileName);
+                m_outFile = std::move(std::ofstream(fullFileName));
             }
         }
     }
 
-    LoggerConsumer::Config::Config(string logDir, const int32_t bufferSize, const int32_t fileSize, const RotateMode rotateMode) :
+    TDLoggerConsumer::Config::Config(std::string logDir, const int32_t bufferSize, const int32_t fileSize, const RotateMode rotateMode) :
         logDirectory(std::move(logDir)),
         bufferSize(bufferSize),
         fileSize(fileSize),
         rotateMode(rotateMode)
     {
-        cout << "[ThinkingEngine] Config Initialization successful" << endl;
     }
 }

@@ -4,11 +4,11 @@
 
 #include <ostream>
 
-namespace TaSDK {
-    class TAConsumer {
+namespace thinkingDataAnalytics {
+    class TDConsumer {
 
     public:
-        virtual ~TAConsumer() = 0;
+        virtual ~TDConsumer() = 0;
 
         virtual void add(const std::string &record) = 0;
 

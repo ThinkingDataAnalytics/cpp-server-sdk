@@ -2,8 +2,8 @@
 // Created by TD on 2022/10/25.
 //
 
-#include "TANetwork.h"
-#include "TAUtils.h"
+#include "TDNetwork.h"
+#include "TDUtils.h"
 #include <curl/curl.h>
 #include <cinttypes>
 
@@ -21,12 +21,12 @@ static size_t OnWriteData(void* buffer, size_t size, size_t nMember, void* lpVoi
 }
 
 
-namespace TaSDK {
-    TANetwork::TANetwork(void) = default;
+namespace thinkingDataAnalytics {
+    TDNetwork::TDNetwork(void) = default;
 
-    TANetwork::~TANetwork(void) = default;
+    TDNetwork::~TDNetwork(void) = default;
 
-    int64_t TANetwork::post(const string& url, const string& appid, string& data, int64_t dataSize, string& strResponse, const string& certPath)
+    int64_t TDNetwork::post(const std::string& url, const std::string& appid, std::string& data, int64_t dataSize, std::string& strResponse, const std::string& certPath)
     {
         CURL *curl;
         CURLcode res;
@@ -100,14 +100,13 @@ namespace TaSDK {
     }
 
     int64_t
-    TANetwork::debug_post(const string &url, const string &appid, string &data, string &strResponse, int32_t dryRun,
-                          const string &deviceId, const string &certPath)
+    TDNetwork::debug_post(const std::string &url, const std::string &appid, std::string &data, std::string &strResponse, int32_t dryRun,
+                          const std::string &deviceId, const std::string &certPath)
     {
         CURL *curl;
         CURLcode res;
         struct curl_slist *header_list = nullptr;
-        string final_encode_data_;
-        string final_data_;
+        std::string final_data_;
 
         curl = curl_easy_init();
         if (!curl) {
@@ -115,7 +114,7 @@ namespace TaSDK {
             return -1;
         }
 
-        final_data_ = "appid=" + appid + "&source=server" + "&dryRun=" + to_string(dryRun) + "&data=" + data;
+        final_data_ = "appid=" + appid + "&source=server" + "&dryRun=" + std::to_string(dryRun) + "&data=" + data;
         if (!deviceId.empty())
         {
             final_data_ = final_data_ + "&deviceId=" + deviceId;
