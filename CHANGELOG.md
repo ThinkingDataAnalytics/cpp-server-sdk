@@ -1,3 +1,18 @@
+### v2.0.0
+**Date:** 2023/11/30
+
+**Notes:**
+
+* Release the official version
+
+### v2.0.0-beta.1
+**Date:** 2023/10/08
+
+**Notes:**
+
+* Enable new API, add 'TD' prefix to class name
+* Not compatible with older SDK. You need to change the class name and namespace manually
+
 ### v1.2.8-beta.2
 **Date:** 2023/06/02
 

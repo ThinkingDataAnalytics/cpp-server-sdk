@@ -21,7 +21,7 @@ const std::string kPathSeparator =
 
 
 namespace thinkingDataAnalytics {
-    const std::string LIB_VERSION = "2.0.0-beta.1";
+    const std::string LIB_VERSION = "2.0.0";
     const std::string LIB_NAME = "tga_cpp_sdk";
 
     /**

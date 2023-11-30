@@ -26,7 +26,7 @@ include_directories(include)
 # # log consumer. Recommended for production environments
 # #
 # set(TE_LIB_NAME thinkingdata)
-# add_library(${TE_LIB_NAME} src/ThinkingAnalyticsAPI.cpp src/TAUtils.cpp src/TALoggerConsumer.cpp src/TDConsumer.cpp)
+# add_library(${TE_LIB_NAME} src/TDAnalytics.cpp src/TDUtils.cpp src/TDLoggerConsumer.cpp src/TDConsumer.cpp)
 # if(UNIX)
 #   find_package(Threads REQUIRED)
 #   target_link_libraries(${TE_LIB_NAME} Threads::Threads)
@@ -37,7 +37,7 @@ include_directories(include)
 # # debug consumer. Recommended for test
 # #
 # set(TE_LIB_NAME thinkingdata)
-# add_library(${TE_LIB_NAME} src/ThinkingAnalyticsAPI.cpp src/TAUtils.cpp src/TDDebugConsumer.cpp src/TDNetwork.cpp src/TDConsumer.cpp)
+# add_library(${TE_LIB_NAME} src/TDAnalytics.cpp src/TDUtils.cpp src/TDDebugConsumer.cpp src/TDNetwork.cpp src/TDConsumer.cpp)
 # if(WIN32)
 #     include_directories(thirdParty/curl/include)
 #     link_directories(thirdParty/curl/lib)
@@ -53,7 +53,7 @@ include_directories(include)
 # # batch consumer. can be used in production environments
 # #
 # set(TE_LIB_NAME thinkingdata)
-# add_library(${TE_LIB_NAME} src/ThinkingAnalyticsAPI.cpp src/TAUtils.cpp src/TDBatchConsumer.cpp src/TDNetwork.cpp src/TDConsumer.cpp)
+# add_library(${TE_LIB_NAME} src/TDAnalytics.cpp src/TDUtils.cpp src/TDBatchConsumer.cpp src/TDNetwork.cpp src/TDConsumer.cpp)
 # if(WIN32)
 #     include_directories(thirdParty/curl/include)
 #     link_directories(thirdParty/curl/lib)
@@ -80,5 +80,6 @@ else ()
     find_package(Threads REQUIRED)
     target_link_libraries(${TE_LIB_NAME} Threads::Threads)
 endif()
+
 add_executable(program example/program.cpp)
 target_link_libraries(program ${TE_LIB_NAME})
